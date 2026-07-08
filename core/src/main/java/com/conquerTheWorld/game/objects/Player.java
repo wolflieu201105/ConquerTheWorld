@@ -34,9 +34,16 @@ public class Player extends Entity {
         super(
             x,
             y,
-            Constants.Z_ENTITY,
+            Constants.DEFAULT_GAME_Z,
+            0,
+            0,
             Constants.PLAYER_DRAW_SIZE,
             Constants.PLAYER_DRAW_SIZE,
+            Constants.PLAYER_COLLISION_WIDTH,
+            Constants.PLAYER_COLLISION_DEPTH,
+            Constants.DEFAULT_COLLISION_HEIGHT,
+            Constants.PLAYER_Z_HEIGHT,
+            Constants.PLAYER_SPEED,
             null,
             true
         );
@@ -65,36 +72,38 @@ public class Player extends Entity {
     @Override
     public void update(float delta) {
         handleInput();
-        super.update(delta);
         updateAnimation(delta);
     }
 
     private void handleInput() {
-        velocityX = 0;
-        velocityY = 0;
+        float moveX = 0;
+        float moveY = 0;
+
         moving = false;
 
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            velocityX = -Constants.PLAYER_SPEED;
+            moveX -= 1;
             facingRight = false;
             moving = true;
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-            velocityX = Constants.PLAYER_SPEED;
+            moveX += 1;
             facingRight = true;
             moving = true;
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-            velocityY = Constants.PLAYER_SPEED;
+            moveY += 1;
             moving = true;
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.S)) {
-            velocityY = -Constants.PLAYER_SPEED;
+            moveY -= 1;
             moving = true;
         }
+
+        setMovementVector(moveX, moveY);
     }
 
     private void updateAnimation(float delta) {
@@ -122,7 +131,7 @@ public class Player extends Entity {
 
     @Override
     public void render(SpriteBatch batch) {
-        batch.draw(texture, x, y, width, height);
+        batch.draw(texture, getRenderX(), getRenderY(), drawWidth, drawHeight);
     }
 
     public void dispose() {

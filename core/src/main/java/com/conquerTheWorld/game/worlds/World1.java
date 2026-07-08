@@ -7,7 +7,6 @@ import com.conquerTheWorld.game.objects.Entity;
 import com.conquerTheWorld.game.objects.Player;
 import com.conquerTheWorld.game.objects.Prop;
 import com.conquerTheWorld.game.objects.RenderableObject;
-import com.conquerTheWorld.game.objects.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,15 +94,21 @@ public class World1 {
         rebuildRenderables();
     }
 
-    private void addRandomFloor(float x, float y) {
+    private void addRandomFloor(float gameX, float gameY) {
         TextureRegion region = stones[random.nextInt(stones.length)];
 
         Prop floor = new Prop(
-            x,
-            y,
-            Constants.Z_FLOOR,
+            gameX,
+            gameY,
+            Constants.DEFAULT_GAME_Z,
+            0,
+            0,
             region.getRegionWidth() * Constants.TILE_MULTIPLIER,
             region.getRegionHeight() * Constants.TILE_MULTIPLIER,
+            Constants.DEFAULT_COLLISION_WIDTH,
+            Constants.DEFAULT_COLLISION_DEPTH,
+            Constants.DEFAULT_COLLISION_HEIGHT,
+            Constants.GROUND_Z_HEIGHT,
             region,
             false
         );
@@ -111,15 +116,21 @@ public class World1 {
         props.add(floor);
     }
 
-    private void addRandomWall(float x, float y) {
+    private void addRandomWall(float gameX, float gameY) {
         TextureRegion region = stoneWalls[random.nextInt(stoneWalls.length)];
 
         Prop wall = new Prop(
-            x,
-            y,
-            Constants.Z_WALL,
+            gameX,
+            gameY,
+            Constants.DEFAULT_GAME_Z,
+            0,
+            0,
             region.getRegionWidth() * Constants.TILE_MULTIPLIER,
             region.getRegionHeight() * Constants.TILE_MULTIPLIER,
+            Constants.WALL_COLLISION_WIDTH,
+            Constants.WALL_COLLISION_DEPTH,
+            Constants.WALL_COLLISION_HEIGHT,
+            Constants.WALL_Z_HEIGHT,
             region,
             true
         );
@@ -134,22 +145,30 @@ public class World1 {
         renderables.addAll(entities);
 
         renderables.sort((a, b) -> {
-            int zCompare = Float.compare(a.getZ(), b.getZ());
-
-            if (zCompare != 0) {
-                return zCompare;
+            if (a.getGameZ() >= b.getTopZ()) {
+                return 1;
             }
 
-            return Float.compare(b.getY(), a.getY());
+            if (b.getGameZ() >= a.getTopZ()) {
+                return -1;
+            }
+
+            return Float.compare(b.getGameY(), a.getGameY());
         });
     }
 
     public void update(float delta) {
         for (Entity entity : entities) {
             entity.update(delta);
+            moveEntity(entity, delta);
         }
 
         rebuildRenderables();
+    }
+
+    private void moveEntity(Entity entity, float delta) {
+        entity.setGameX(entity.getGameX() + entity.getMoveX(delta));
+        entity.setGameY(entity.getGameY() + entity.getMoveY(delta));
     }
 
     public List<Prop> getProps() {
