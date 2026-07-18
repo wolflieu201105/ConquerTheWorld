@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "weapons": [
+    {
+      "id": "quick_sword",
+      "networkId": 1,
+      "displayName": "Quick Sword",
+      "category": "sword",
+      "texture": "weapons/quick_sword.png",
+      "drawWidth": 28.0,
+      "drawHeight": 8.0,
+      "gripX": 3.0,
+      "gripY": 4.0,
+      "attackId": "quick_swing"
+    },
+    {
+      "id": "heavy_sword",
+      "networkId": 2,
+      "displayName": "Heavy Sword",
+      "category": "sword",
+      "texture": "weapons/heavy_sword.png",
+      "drawWidth": 38.0,
+      "drawHeight": 12.0,
+      "gripX": 4.0,
+      "gripY": 6.0,
+      "attackId": "heavy_swing"
+    }
+  ]
+}

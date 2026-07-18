@@ -4,9 +4,10 @@ public class Constants {
     private Constants() {
     }
 
-    // Window / world size
-    public static final int WORLD_WIDTH = 400;
-    public static final int WORLD_HEIGHT = 300;
+    // World camera size
+    // Exactly matches the current bordered map so no world outside the border is exposed.
+    public static final float CAMERA_VIEW_WIDTH = 320f;
+    public static final float CAMERA_VIEW_HEIGHT = 256f;
 
     // Tiles
     public static final int SOURCE_TILE_SIZE = 16;
@@ -14,18 +15,14 @@ public class Constants {
     public static final int FLOOR_DRAW_SIZE = SOURCE_TILE_SIZE * TILE_MULTIPLIER;
 
     // Player
-    public static final String DEFAULT_PLAYER_SKIN_PATH = "players/player_2.png";
-    public static final int PLAYER_SOURCE_SIZE = 16;
-    public static final int PLAYER_MULTIPLIER = 2;
-    public static final int PLAYER_DRAW_SIZE = PLAYER_SOURCE_SIZE * PLAYER_MULTIPLIER;
-    public static final float PLAYER_SPEED = 90f;
+    public static final int PLAYER_DRAW_SIZE = 32;
     public static final float PLAYER_ANIMATION_FRAME_TIME = 0.16f;
+    public static final float AIM_DEAD_ZONE_SQUARED = 0.0001f;
 
     // Z / elevation
     public static final float DEFAULT_GAME_Z = 0f;
 
     public static final float GROUND_Z_HEIGHT = 0f;
-    public static final float PLAYER_Z_HEIGHT = 32f;
     public static final float WALL_Z_HEIGHT = 32f;
 
     // Collision footprint
@@ -34,9 +31,6 @@ public class Constants {
 
     public static final float DEFAULT_COLLISION_WIDTH = 0f;
     public static final float DEFAULT_COLLISION_DEPTH = 0f;
-
-    public static final float PLAYER_COLLISION_WIDTH = PLAYER_DRAW_SIZE;
-    public static final float PLAYER_COLLISION_DEPTH = PLAYER_DRAW_SIZE;
 
     public static final float WALL_COLLISION_WIDTH = SOURCE_TILE_SIZE * TILE_MULTIPLIER;
     public static final float WALL_COLLISION_DEPTH = SOURCE_TILE_SIZE * TILE_MULTIPLIER;

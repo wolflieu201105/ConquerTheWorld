@@ -1,4 +1,4 @@
-package com.conquerTheWorld.game.objects;
+package com.conquerTheWorld.game.objects.core;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 

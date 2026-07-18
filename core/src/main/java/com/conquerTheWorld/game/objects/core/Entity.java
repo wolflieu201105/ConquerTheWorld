@@ -1,8 +1,12 @@
-package com.conquerTheWorld.game.objects;
+package com.conquerTheWorld.game.objects.core;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class Entity implements RenderableObject {
     protected float gameX;
@@ -18,6 +22,7 @@ public class Entity implements RenderableObject {
     protected float collisionWidth;
     protected float collisionDepth;
     protected float collisionHeight;
+    protected List<Hitbox> hitboxes;
 
     protected float zHeight;
 
@@ -44,6 +49,38 @@ public class Entity implements RenderableObject {
         TextureRegion texture,
         boolean solid
     ) {
+        this(
+            gameX,
+            gameY,
+            gameZ,
+            renderOffsetX,
+            renderOffsetY,
+            drawWidth,
+            drawHeight,
+            defaultHitboxes(collisionWidth, collisionDepth),
+            collisionHeight,
+            zHeight,
+            velocity,
+            texture,
+            solid
+        );
+    }
+
+    public Entity(
+        float gameX,
+        float gameY,
+        float gameZ,
+        float renderOffsetX,
+        float renderOffsetY,
+        float drawWidth,
+        float drawHeight,
+        List<Hitbox> hitboxes,
+        float collisionHeight,
+        float zHeight,
+        float velocity,
+        TextureRegion texture,
+        boolean solid
+    ) {
         this.gameX = gameX;
         this.gameY = gameY;
         this.gameZ = gameZ;
@@ -51,14 +88,20 @@ public class Entity implements RenderableObject {
         this.renderOffsetY = renderOffsetY;
         this.drawWidth = drawWidth;
         this.drawHeight = drawHeight;
-        this.collisionWidth = collisionWidth;
-        this.collisionDepth = collisionDepth;
+        setHitboxes(hitboxes);
         this.collisionHeight = collisionHeight;
         this.zHeight = zHeight;
         this.velocity = velocity;
         this.texture = texture;
         this.solid = solid;
         this.movementVector = new Vector2();
+    }
+
+    private static List<Hitbox> defaultHitboxes(float width, float depth) {
+        if (width <= 0f || depth <= 0f) {
+            return Collections.emptyList();
+        }
+        return Collections.singletonList(new Hitbox(0f, 0f, width, depth));
     }
 
     @Override
@@ -69,6 +112,49 @@ public class Entity implements RenderableObject {
     @Override
     public void render(SpriteBatch batch) {
         batch.draw(texture, getRenderX(), getRenderY(), drawWidth, drawHeight);
+    }
+
+    /**
+     * Called after this entity's attempted movement overlaps a solid wall.
+     * Return true to cancel movement on the colliding axis, or false to pass through.
+     */
+    public boolean wallCollide(Prop wall) {
+        return false;
+    }
+
+    public List<Hitbox> getHitboxes() {
+        return hitboxes;
+    }
+
+    public void setHitboxes(List<Hitbox> hitboxes) {
+        if (hitboxes == null) {
+            throw new IllegalArgumentException("Hitbox list cannot be null");
+        }
+
+        List<Hitbox> copy = new ArrayList<>(hitboxes.size());
+        float minimumX = Float.POSITIVE_INFINITY;
+        float minimumY = Float.POSITIVE_INFINITY;
+        float maximumX = Float.NEGATIVE_INFINITY;
+        float maximumY = Float.NEGATIVE_INFINITY;
+        for (Hitbox hitbox : hitboxes) {
+            if (hitbox == null) {
+                throw new IllegalArgumentException("Hitbox list cannot contain null");
+            }
+            copy.add(hitbox);
+            minimumX = Math.min(minimumX, hitbox.getMinimumX());
+            minimumY = Math.min(minimumY, hitbox.getMinimumY());
+            maximumX = Math.max(maximumX, hitbox.getMaximumX());
+            maximumY = Math.max(maximumY, hitbox.getMaximumY());
+        }
+
+        this.hitboxes = Collections.unmodifiableList(copy);
+        if (copy.isEmpty()) {
+            collisionWidth = 0f;
+            collisionDepth = 0f;
+        } else {
+            collisionWidth = maximumX - minimumX;
+            collisionDepth = maximumY - minimumY;
+        }
     }
 
     public float getMoveX(float delta) {

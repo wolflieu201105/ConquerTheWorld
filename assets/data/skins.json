@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "skins": [
+    {
+      "id": "knight_default",
+      "characterId": "knight",
+      "texture": "players/player_2.png",
+      "frameWidth": 16,
+      "frameHeight": 16,
+      "tint": [0.72, 0.84, 1.0, 1.0]
+    },
+    {
+      "id": "knight_gold",
+      "characterId": "knight",
+      "texture": "players/player_2.png",
+      "frameWidth": 16,
+      "frameHeight": 16,
+      "tint": [1.0, 0.82, 0.36, 1.0]
+    },
+    {
+      "id": "rogue_default",
+      "characterId": "rogue",
+      "texture": "players/player_1.png",
+      "frameWidth": 16,
+      "frameHeight": 16,
+      "tint": [0.70, 1.0, 0.72, 1.0]
+    },
+    {
+      "id": "rogue_shadow",
+      "characterId": "rogue",
+      "texture": "players/player_2.png",
+      "frameWidth": 16,
+      "frameHeight": 16,
+      "tint": [0.65, 0.62, 0.92, 1.0]
+    }
+  ]
+}

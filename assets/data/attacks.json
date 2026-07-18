@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "attacks": [
+    {
+      "id": "quick_swing",
+      "duration": 0.22,
+      "cooldown": 0.30,
+      "collisionHeight": 32.0,
+      "swingStartDegrees": -55.0,
+      "swingEndDegrees": 65.0,
+      "hitboxes": [
+        { "x": 22.0, "y": 6.0, "width": 10.0, "height": 5.0 },
+        { "x": 28.0, "y": 11.0, "width": 10.0, "height": 5.0 },
+        { "x": 34.0, "y": 16.0, "width": 6.0, "height": 7.0 }
+      ]
+    },
+    {
+      "id": "heavy_swing",
+      "duration": 0.36,
+      "cooldown": 0.60,
+      "collisionHeight": 32.0,
+      "swingStartDegrees": -75.0,
+      "swingEndDegrees": 70.0,
+      "hitboxes": [
+        { "x": 18.0, "y": 3.0, "width": 14.0, "height": 7.0 },
+        { "x": 26.0, "y": 9.0, "width": 15.0, "height": 7.0 },
+        { "x": 34.0, "y": 15.0, "width": 13.0, "height": 8.0 },
+        { "x": 40.0, "y": 21.0, "width": 8.0, "height": 9.0 }
+      ]
+    }
+  ]
+}
