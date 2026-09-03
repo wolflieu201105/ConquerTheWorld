@@ -6,9 +6,9 @@ import com.conquerTheWorld.game.data.GameDataRegistry;
 import com.conquerTheWorld.game.data.WeaponDefinition;
 import com.conquerTheWorld.game.objects.core.Hitbox;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.ArrayList;
 
 /** Stable sword identities; weapon visuals and attack numbers are loaded from JSON. */
 public enum SwordType {
@@ -32,6 +32,13 @@ public enum SwordType {
     public float getDrawHeight() { return weapon().getDrawHeight(); }
     public float getGripX() { return weapon().getGripX(); }
     public float getGripY() { return weapon().getGripY(); }
+    public float getRotationStepDegrees() { return weapon().getRotationStepDegrees(); }
+
+    public float snapAngle(float angleDegrees) {
+        float step = getRotationStepDegrees();
+        float normalized = normalizeDegrees(angleDegrees);
+        return normalizeDegrees(Math.round(normalized / step) * step);
+    }
 
     public float getSwingAngle(float progress) {
         float clamped = Math.max(0f, Math.min(1f, progress));
@@ -44,7 +51,8 @@ public enum SwordType {
     }
 
     public List<Hitbox> createHitboxes(float angleDegrees) {
-        double radians = Math.toRadians(angleDegrees);
+        float snappedAngle = snapAngle(angleDegrees);
+        double radians = Math.toRadians(snappedAngle);
         float cosine = (float) Math.cos(radians);
         float sine = (float) Math.sin(radians);
         float pivot = Constants.PLAYER_DRAW_SIZE * 0.5f;
@@ -58,7 +66,7 @@ public enum SwordType {
                 pivot + sine * localX + cosine * localY,
                 hitbox.getWidth(),
                 hitbox.getHeight(),
-                angleDegrees
+                snappedAngle
             ));
         }
         return Collections.unmodifiableList(rotated);
@@ -70,6 +78,11 @@ public enum SwordType {
 
     private AttackDefinition attack() {
         return GameDataRegistry.get().getAttack(weapon().getAttackId());
+    }
+
+    private static float normalizeDegrees(float degrees) {
+        float normalized = degrees % 360f;
+        return normalized < 0f ? normalized + 360f : normalized;
     }
 
     public static SwordType fromNetworkId(int networkId) {

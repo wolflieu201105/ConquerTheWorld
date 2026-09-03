@@ -198,7 +198,7 @@ public final class UdpGameServer implements Closeable {
                 session.moveY = packet.moveY;
             }
 
-            session.aimAngleDegrees = normalizeDegrees(packet.aimAngleDegrees);
+            session.aimAngleDegrees = session.swordType.snapAngle(packet.aimAngleDegrees);
             boolean startedAttack = packet.attackDown && !session.attackDown;
             session.attackDown = packet.attackDown;
             if (startedAttack && session.attackCooldownRemaining <= 0f) {
@@ -304,25 +304,11 @@ public final class UdpGameServer implements Closeable {
         Iterator<ServerAttackState> attackIterator = attacks.iterator();
         while (attackIterator.hasNext()) {
             ServerAttackState attack = attackIterator.next();
-            ClientSession owner = findSessionByPlayerId(attack.ownerPlayerId);
-            if (owner != null) {
-                attack.x = owner.x;
-                attack.y = owner.y;
-            }
             attack.remainingSeconds -= delta;
             if (attack.remainingSeconds <= 0f) {
                 attackIterator.remove();
             }
         }
-    }
-
-    private ClientSession findSessionByPlayerId(int playerId) {
-        for (ClientSession session : clients.values()) {
-            if (session.playerId == playerId) {
-                return session;
-            }
-        }
-        return null;
     }
 
     private void tryMoveSession(ClientSession session, float moveX, float moveY) {
@@ -456,8 +442,8 @@ public final class UdpGameServer implements Closeable {
     private static final class ServerAttackState {
         final int attackId;
         final int ownerPlayerId;
-        float x;
-        float y;
+        final float x;
+        final float y;
         final float aimAngleDegrees;
         final SwordType swordType;
         float remainingSeconds;
@@ -474,14 +460,9 @@ public final class UdpGameServer implements Closeable {
             this.ownerPlayerId = ownerPlayerId;
             this.x = x;
             this.y = y;
-            this.aimAngleDegrees = normalizeDegrees(aimAngleDegrees);
+            this.aimAngleDegrees = swordType.snapAngle(aimAngleDegrees);
             this.swordType = swordType;
             this.remainingSeconds = swordType.getDuration();
         }
-    }
-
-    private static float normalizeDegrees(float degrees) {
-        float normalized = degrees % 360f;
-        return normalized < 0f ? normalized + 360f : normalized;
     }
 }

@@ -26,7 +26,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
 public class GameWorld {
@@ -39,7 +38,6 @@ public class GameWorld {
     private final List<Entity> entities = new ArrayList<>();
     private final List<RenderableObject> renderables = new ArrayList<>();
 
-    private final Random random = new Random();
     private final UdpGameClient networkClient;
     private final Map<Integer, Player> networkPlayers = new HashMap<>();
     private final Map<Integer, SwordAttack> attacks = new HashMap<>();
@@ -106,9 +104,9 @@ public class GameWorld {
                 float y = (map.length - 1 - row) * Constants.FLOOR_DRAW_SIZE;
 
                 if (id == WorldLayout.RANDOM_FLOOR) {
-                    addRandomFloor(x, y);
+                    addFloor(x, y, row, col);
                 } else if (id == WorldLayout.RANDOM_WALL) {
-                    addRandomWall(x, y);
+                    addWall(x, y, row, col);
                 }
             }
         }
@@ -116,8 +114,9 @@ public class GameWorld {
         rebuildRenderables();
     }
 
-    private void addRandomFloor(float gameX, float gameY) {
-        TextureRegion region = stones[random.nextInt(stones.length)];
+    private void addFloor(float gameX, float gameY, int row, int column) {
+        int variant = WorldLayout.tileVariant(row, column, stones.length, 0x464C4F4F);
+        TextureRegion region = stones[variant];
 
         Prop floor = new Prop(
             gameX,
@@ -138,8 +137,9 @@ public class GameWorld {
         props.add(floor);
     }
 
-    private void addRandomWall(float gameX, float gameY) {
-        TextureRegion region = stoneWalls[random.nextInt(stoneWalls.length)];
+    private void addWall(float gameX, float gameY, int row, int column) {
+        int variant = WorldLayout.tileVariant(row, column, stoneWalls.length, 0x57414C4C);
+        TextureRegion region = stoneWalls[variant];
 
         Prop wall = new Prop(
             gameX,
@@ -194,14 +194,16 @@ public class GameWorld {
             moveEntity(entity, delta);
         }
 
-        if (player != null && player.consumeAttackPressed()) {
+        if (player != null
+            && player.consumeAttackPressed()
+            && player.hasEquippedWeapon()) {
             addAttack(
                 nextLocalAttackId--,
                 0,
                 player.getGameX(),
                 player.getGameY(),
                 player.getAimAngleDegrees(),
-                NetworkConfig.getSwordType()
+                player.getEquippedSwordType()
             );
         }
         updateLocalAttacks(delta);
@@ -319,8 +321,6 @@ public class GameWorld {
                     state.getSwordType()
                 );
             }
-            attack.setGameX(state.getX());
-            attack.setGameY(state.getY());
         }
 
         Iterator<Map.Entry<Integer, SwordAttack>> iterator = attacks.entrySet().iterator();
@@ -359,10 +359,6 @@ public class GameWorld {
         while (iterator.hasNext()) {
             Map.Entry<Integer, SwordAttack> entry = iterator.next();
             SwordAttack attack = entry.getValue();
-            if (player != null && attack.getOwnerPlayerId() == 0) {
-                attack.setGameX(player.getGameX());
-                attack.setGameY(player.getGameY());
-            }
             attack.update(delta);
             if (attack.isExpired()) {
                 entities.remove(attack);
@@ -373,11 +369,6 @@ public class GameWorld {
 
     private void updateNetworkAttacks(float delta) {
         for (SwordAttack attack : attacks.values()) {
-            Player owner = networkPlayers.get(attack.getOwnerPlayerId());
-            if (owner != null) {
-                attack.setGameX(owner.getGameX());
-                attack.setGameY(owner.getGameY());
-            }
             attack.update(delta);
         }
     }
@@ -469,6 +460,21 @@ public class GameWorld {
         for (SwordAttack attack : attacks.values()) {
             if (attack.getOwnerPlayerId() == playerId) {
                 return attack;
+            }
+        }
+        return null;
+    }
+
+    public SwordAttack getActiveAttackForPlayer(Player targetPlayer) {
+        if (targetPlayer == null) {
+            return null;
+        }
+        if (networkClient == null) {
+            return targetPlayer == player ? getActiveAttackForPlayer(0) : null;
+        }
+        for (Map.Entry<Integer, Player> entry : networkPlayers.entrySet()) {
+            if (entry.getValue() == targetPlayer) {
+                return getActiveAttackForPlayer(entry.getKey());
             }
         }
         return null;

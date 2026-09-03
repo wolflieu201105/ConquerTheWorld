@@ -20,7 +20,7 @@
     {
       "id": "rogue_default",
       "characterId": "rogue",
-      "texture": "players/player_1.png",
+      "texture": "players/player_2.png",
       "frameWidth": 16,
       "frameHeight": 16,
       "tint": [0.70, 1.0, 0.72, 1.0]

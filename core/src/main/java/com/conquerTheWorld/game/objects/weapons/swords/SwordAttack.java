@@ -30,7 +30,7 @@ public abstract class SwordAttack extends Entity {
             0f,
             0f,
             0f,
-            swordType.createHitboxes(aimAngleDegrees + swordType.getSwingAngle(0f)),
+            swordType.createHitboxes(aimAngleDegrees),
             swordType.getCollisionHeight(),
             0f,
             0f,
@@ -39,7 +39,7 @@ public abstract class SwordAttack extends Entity {
         );
         this.attackId = attackId;
         this.ownerPlayerId = ownerPlayerId;
-        this.aimAngleDegrees = normalizeDegrees(aimAngleDegrees);
+        this.aimAngleDegrees = swordType.snapAngle(aimAngleDegrees);
         this.swordType = swordType;
         this.remainingSeconds = swordType.getDuration();
     }
@@ -51,12 +51,12 @@ public abstract class SwordAttack extends Entity {
     @Override
     public void update(float delta) {
         remainingSeconds -= delta;
-        setHitboxes(swordType.createHitboxes(getRenderAngleDegrees()));
     }
 
     @Override
     public void render(SpriteBatch batch) {
-        // WeaponRenderer draws the sword; Main optionally draws debug hitboxes.
+        // Add the stationary swing/effect sprite here later. WeaponRenderer draws only
+        // the carried weapon at the owner's current position.
     }
 
     public int getAttackId() {
@@ -79,8 +79,10 @@ public abstract class SwordAttack extends Entity {
         return Math.max(0f, Math.min(1f, 1f - remainingSeconds / swordType.getDuration()));
     }
 
-    public float getRenderAngleDegrees() {
-        return normalizeDegrees(aimAngleDegrees + swordType.getSwingAngle(getProgress()));
+    public float getCarriedWeaponAngleDegrees() {
+        return swordType.snapAngle(
+            aimAngleDegrees + swordType.getSwingAngle(getProgress())
+        );
     }
 
     public SwordType getSwordType() {
@@ -91,8 +93,18 @@ public abstract class SwordAttack extends Entity {
         return remainingSeconds <= 0f;
     }
 
-    private static float normalizeDegrees(float degrees) {
-        float normalized = degrees % 360f;
-        return normalized < 0f ? normalized + 360f : normalized;
+    @Override
+    public final void setGameX(float gameX) {
+        throw new UnsupportedOperationException("A sword attack stays at its spawn position");
+    }
+
+    @Override
+    public final void setGameY(float gameY) {
+        throw new UnsupportedOperationException("A sword attack stays at its spawn position");
+    }
+
+    @Override
+    public final void setGameZ(float gameZ) {
+        throw new UnsupportedOperationException("A sword attack stays at its spawn position");
     }
 }

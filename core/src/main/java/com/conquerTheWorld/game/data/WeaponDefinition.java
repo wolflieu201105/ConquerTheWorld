@@ -10,6 +10,7 @@ public final class WeaponDefinition {
     private final float drawHeight;
     private final float gripX;
     private final float gripY;
+    private final float rotationStepDegrees;
     private final String attackId;
 
     WeaponDefinition(
@@ -22,6 +23,7 @@ public final class WeaponDefinition {
         float drawHeight,
         float gripX,
         float gripY,
+        float rotationStepDegrees,
         String attackId
     ) {
         this.id = id;
@@ -33,6 +35,7 @@ public final class WeaponDefinition {
         this.drawHeight = drawHeight;
         this.gripX = gripX;
         this.gripY = gripY;
+        this.rotationStepDegrees = rotationStepDegrees;
         this.attackId = attackId;
     }
 
@@ -45,5 +48,6 @@ public final class WeaponDefinition {
     public float getDrawHeight() { return drawHeight; }
     public float getGripX() { return gripX; }
     public float getGripY() { return gripY; }
+    public float getRotationStepDegrees() { return rotationStepDegrees; }
     public String getAttackId() { return attackId; }
 }

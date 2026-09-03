@@ -3,6 +3,7 @@ package com.conquerTheWorld.game.data;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 import com.conquerTheWorld.game.objects.core.Hitbox;
+import com.conquerTheWorld.game.objects.weapons.WeaponHand;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -85,6 +86,7 @@ public final class GameDataRegistry {
                 positive(value, "speed"),
                 positive(value, "bodyHeight"),
                 hitboxes(value.get("hitboxes")),
+                WeaponHand.fromData(value.getString("defaultWeaponHand")),
                 id(value.getString("defaultSkinId")),
                 strings(value.get("allowedSkinIds"))
             ), "character");
@@ -131,6 +133,7 @@ public final class GameDataRegistry {
                 positive(value, "drawHeight"),
                 value.getFloat("gripX"),
                 value.getFloat("gripY"),
+                positive(value, "rotationStepDegrees"),
                 id(value.getString("attackId"))
             ), "weapon");
         }

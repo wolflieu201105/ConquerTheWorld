@@ -1,6 +1,7 @@
 package com.conquerTheWorld.game.data;
 
 import com.conquerTheWorld.game.objects.core.Hitbox;
+import com.conquerTheWorld.game.objects.weapons.WeaponHand;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,6 +14,7 @@ public final class CharacterDefinition {
     private final float speed;
     private final float bodyHeight;
     private final List<Hitbox> bodyHitboxes;
+    private final WeaponHand defaultWeaponHand;
     private final String defaultSkinId;
     private final List<String> allowedSkinIds;
 
@@ -23,6 +25,7 @@ public final class CharacterDefinition {
         float speed,
         float bodyHeight,
         List<Hitbox> bodyHitboxes,
+        WeaponHand defaultWeaponHand,
         String defaultSkinId,
         List<String> allowedSkinIds
     ) {
@@ -32,6 +35,7 @@ public final class CharacterDefinition {
         this.speed = speed;
         this.bodyHeight = bodyHeight;
         this.bodyHitboxes = Collections.unmodifiableList(new ArrayList<>(bodyHitboxes));
+        this.defaultWeaponHand = defaultWeaponHand;
         this.defaultSkinId = defaultSkinId;
         this.allowedSkinIds = Collections.unmodifiableList(new ArrayList<>(allowedSkinIds));
     }
@@ -42,6 +46,7 @@ public final class CharacterDefinition {
     public float getSpeed() { return speed; }
     public float getBodyHeight() { return bodyHeight; }
     public List<Hitbox> getBodyHitboxes() { return bodyHitboxes; }
+    public WeaponHand getDefaultWeaponHand() { return defaultWeaponHand; }
     public String getDefaultSkinId() { return defaultSkinId; }
     public List<String> getAllowedSkinIds() { return allowedSkinIds; }
 }

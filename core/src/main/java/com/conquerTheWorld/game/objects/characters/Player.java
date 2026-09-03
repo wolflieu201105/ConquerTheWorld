@@ -10,6 +10,7 @@ import com.conquerTheWorld.game.Constants;
 import com.conquerTheWorld.game.data.SkinDefinition;
 import com.conquerTheWorld.game.objects.core.Entity;
 import com.conquerTheWorld.game.objects.core.Prop;
+import com.conquerTheWorld.game.objects.weapons.WeaponHand;
 import com.conquerTheWorld.game.objects.weapons.swords.SwordType;
 
 public abstract class Player extends Entity {
@@ -30,7 +31,8 @@ public abstract class Player extends Entity {
 
     private boolean facingRight = true;
     private float aimAngleDegrees = 0f;
-    private SwordType equippedSwordType = SwordType.QUICK;
+    private SwordType equippedSwordType;
+    private WeaponHand weaponHand;
     private boolean moving = false;
     private boolean attackDown = false;
     private boolean attackPressed = false;
@@ -56,6 +58,7 @@ public abstract class Player extends Entity {
         );
 
         this.characterType = characterType;
+        weaponHand = characterType.getDefaultWeaponHand();
         SkinDefinition skin = characterType.getDefaultSkin();
         skinId = skin.getId();
         tint = new Color(
@@ -157,7 +160,9 @@ public abstract class Player extends Entity {
         if (Float.isNaN(angleDegrees) || Float.isInfinite(angleDegrees)) {
             return;
         }
-        aimAngleDegrees = normalizeDegrees(angleDegrees);
+        aimAngleDegrees = equippedSwordType == null
+            ? normalizeDegrees(angleDegrees)
+            : equippedSwordType.snapAngle(angleDegrees);
         facingRight = aimAngleDegrees < 90f || aimAngleDegrees > 270f;
     }
 
@@ -177,11 +182,35 @@ public abstract class Player extends Entity {
         return equippedSwordType;
     }
 
+    public boolean hasEquippedWeapon() {
+        return equippedSwordType != null;
+    }
+
     public void setEquippedSwordType(SwordType equippedSwordType) {
         if (equippedSwordType == null) {
             throw new IllegalArgumentException("Equipped sword type cannot be null");
         }
         this.equippedSwordType = equippedSwordType;
+        setAimAngleDegrees(aimAngleDegrees);
+    }
+
+    public void clearEquippedWeapon() {
+        equippedSwordType = null;
+    }
+
+    public WeaponHand getWeaponHand() {
+        return weaponHand;
+    }
+
+    public void setWeaponHand(WeaponHand weaponHand) {
+        if (weaponHand == null) {
+            throw new IllegalArgumentException("Weapon hand cannot be null");
+        }
+        this.weaponHand = weaponHand;
+    }
+
+    public boolean rendersWeaponBeforePlayer() {
+        return weaponHand.rendersBeforePlayer(facingRight);
     }
 
     public boolean isAttackDown() {

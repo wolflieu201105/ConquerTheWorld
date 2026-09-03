@@ -4,8 +4,7 @@ public class Constants {
     private Constants() {
     }
 
-    // World camera size
-    // Exactly matches the current bordered map so no world outside the border is exposed.
+    // World camera size. The larger arena scrolls while this view stays inside its border.
     public static final float CAMERA_VIEW_WIDTH = 320f;
     public static final float CAMERA_VIEW_HEIGHT = 256f;
 

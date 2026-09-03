@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "characters": [
     {
       "id": "knight",
@@ -7,6 +7,7 @@
       "displayName": "Knight",
       "speed": 80.0,
       "bodyHeight": 32.0,
+      "defaultWeaponHand": "right",
       "defaultSkinId": "knight_default",
       "allowedSkinIds": ["knight_default", "knight_gold"],
       "hitboxes": [
@@ -19,6 +20,7 @@
       "displayName": "Rogue",
       "speed": 110.0,
       "bodyHeight": 26.0,
+      "defaultWeaponHand": "left",
       "defaultSkinId": "rogue_default",
       "allowedSkinIds": ["rogue_default", "rogue_shadow"],
       "hitboxes": [

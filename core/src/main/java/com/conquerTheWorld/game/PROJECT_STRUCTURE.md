@@ -15,7 +15,7 @@ game/
   objects/
     core/                            Entity, Prop, Hitbox, collision, rendering contract
     characters/                      Player, Knight, Rogue, type, factory
-    weapons/                         shared weapon sprite renderer
+    weapons/                         carried weapon renderer and left/right hand model
       swords/                        sword types, attacks, subclasses, factory
   world/                             GameWorld, WorldLayout, CollisionMath
 assets/

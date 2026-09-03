@@ -4,6 +4,7 @@ import com.conquerTheWorld.game.data.CharacterDefinition;
 import com.conquerTheWorld.game.data.GameDataRegistry;
 import com.conquerTheWorld.game.data.SkinDefinition;
 import com.conquerTheWorld.game.objects.core.Hitbox;
+import com.conquerTheWorld.game.objects.weapons.WeaponHand;
 
 import java.util.List;
 
@@ -24,6 +25,7 @@ public enum CharacterType {
     public float getSpeed() { return definition().getSpeed(); }
     public float getBodyHeight() { return definition().getBodyHeight(); }
     public List<Hitbox> getBodyHitboxes() { return definition().getBodyHitboxes(); }
+    public WeaponHand getDefaultWeaponHand() { return definition().getDefaultWeaponHand(); }
     public String getDefaultSkinId() { return definition().getDefaultSkinId(); }
 
     public SkinDefinition getDefaultSkin() {

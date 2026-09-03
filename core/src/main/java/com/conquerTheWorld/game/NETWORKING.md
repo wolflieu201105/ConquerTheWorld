@@ -19,26 +19,26 @@ The normal workflow no longer requires a separate headless-server window:
 - `game.mode=local` keeps the original offline behavior.
 
 Every snapshot contains every connected player's ID, character type, position, and movement
-vector, continuous aim angle, and equipped sword. `GameWorld` creates one renderable `Player` per
+vector, stepped aim angle, and equipped sword. `GameWorld` creates one renderable `Player` per
 ID, updates remote positions, and removes
 players that leave. The game draws labels such as `YOU (P1) - Knight` and `P2 - Rogue` above
 the synchronized characters.
 
-## Screen-space labels and full-map camera
+## Screen-space labels and following camera
 
-The world camera now uses a 320x256 logical view, exactly matching the current bordered map, so
-the complete wall border stays visible without exposing world space beyond it. `resize()` uses a
-whole-number scale and centers that viewport to preserve pixel-art sampling. `updateCameraFollow()` still clamps to
-`WorldLayout.getWorldWidth()` and `getWorldHeight()`; when a later map is larger than the view,
-the camera follows the local player without crossing the map boundary.
+The arena is 24x18 tiles, or 768x576 world units. The camera keeps its 320x256 logical view and
+follows the local player through the larger arena. `resize()` uses a whole-number scale and
+centers that viewport to preserve pixel-art sampling. `updateCameraFollow()` clamps against
+`WorldLayout.getWorldWidth()` and `getWorldHeight()`, so the camera never exposes space beyond
+the solid outer wall.
 
 Player names are no longer drawn through the low-resolution world camera. `Main` projects each
 player's world position to the window, switches to a native-resolution UI camera, and draws the
 label with a black four-direction outline and a white center. The font is therefore independent
 of tile zoom and scales with window height.
 
-Press `F3` at any time to toggle the play-test overlay. It shows player body rectangles, rotated
-sword rectangles, and solid wall footprints. The startup default can still be set with
+Press `F3` at any time to toggle the play-test overlay. It shows player body rectangles,
+stationary attack rectangles, and solid wall footprints. The startup default can still be set with
 `-Dgame.debug.hitboxes=true` or `GAME_DEBUG_HITBOXES=true`.
 
 ## Package layout
@@ -60,33 +60,48 @@ The source packages now match responsibility:
 
 Four files under `assets/data` are loaded and validated by `GameDataRegistry`:
 
-- `characters.json`: stable/network IDs, names, speed, body height, skins, and body rectangles;
+- `characters.json`: stable/network IDs, names, speed, body height, default weapon hand, skins,
+  and body rectangles;
 - `skins.json`: stable skin IDs, compatible character, texture/frame layout, and tint;
-- `weapons.json`: stable/network IDs, category, sprite, draw size, grip, and attack reference;
+- `weapons.json`: stable/network IDs, category, sprite, draw size, grip, rotation step, and attack
+  reference;
 - `attacks.json`: timing, cooldown, collision height, swing range, and hitbox rectangles.
 
 The client and headless server read the same numbers. Set `game.data.dir` or `GAME_DATA_DIR` only
 when the JSON is stored somewhere other than the normal `assets/data` directory. IDs must remain
 stable after release; do not renumber existing network IDs.
 
-## Mouse aiming, camera follow, and rotating pixel-art weapons
+## Mouse aiming, camera follow, and stepped pixel-art weapons
 
 libGDX can rotate a pixel-art texture by any angle. The art remains a low-resolution sprite;
 the difference is that `SpriteBatch.draw(...)` rotates the complete sprite around a chosen grip
-point instead of requiring a separate animation frame for every direction.
+point instead of requiring a separate animation frame for every direction. This game deliberately
+quantizes that capability to create a more rigid pixel-art feel.
 
 The local aiming path is:
 
-1. `Main.updateCameraFollow()` centers/clamps the 320x256 view, showing the complete bordered
-   arena. If a later map is larger, the same method follows the player inside its limits.
+1. `Main.updateCameraFollow()` follows the local player with the 320x256 view and stops the camera
+   at the 768x576 arena boundary.
 2. `camera.unproject(...)` converts the mouse from window coordinates into world coordinates,
    including the integer-scaled viewport and letterbox offset.
 3. `GameWorld.setLocalAimTarget(...)` passes that target to the local `Player`.
-4. `Player.aimAt(...)` uses `atan2(mouseY - playerY, mouseX - playerX)` to store a 0-360 degree
-   aim angle. The character sheet still uses left/right rows, chosen from the angle's X direction.
-5. `WeaponRenderer` draws the equipped sword around its grip pixel at that angle. During an
-   attack it uses `SwordAttack.getRenderAngleDegrees()` to animate through that sword type's
-   swing arc.
+4. `Player.aimAt(...)` uses `atan2(mouseY - playerY, mouseX - playerX)` to calculate a 0-360 degree
+   angle, then `SwordType.snapAngle(...)` rounds it to the nearest configured step. With the
+   current 15-degree value, the possible angles are 0, 15, 30, 45, and so on. The character sheet
+   still uses left/right rows, chosen from the snapped angle's X direction.
+5. `WeaponRenderer` draws the equipped sword around its grip pixel at that snapped angle. During
+   an attack, `SwordAttack.getCarriedWeaponAngleDegrees()` supplies stepped visual swing progress.
+   Only the carried weapon rotates; the separate attack entity remains fixed at its spawn point.
+
+The step is data-driven. Change `rotationStepDegrees` for a weapon in `assets/data/weapons.json`:
+
+```json
+"rotationStepDegrees": 15.0
+```
+
+Use `30.0` or `45.0` for a more rigid weapon, or a smaller value for finer motion. The attack's
+fixed rectangles are initially oriented to the snapped aim direction. The carried weapon can then
+animate through its stepped swing without moving those rectangles.
 
 The mouse controls are:
 
@@ -111,28 +126,53 @@ The collision rectangles are a line-based debug overlay so they do not cover the
 Toggle them with `F3`.
 
 In multiplayer, the client sends the angle as input rather than sending a trusted position. The
-server validates and stores the angle, creates attacks from that authoritative direction, and
-includes both player and attack angles in snapshots. Consequently, the same rotating weapon is
-visible on the host and every joining client. Protocol version 4 is required; version 3 clients
-cannot join a version 4 server.
+server validates and re-snaps the angle using that player's equipped weapon, creates attacks from
+that authoritative direction, and includes both player and attack angles in snapshots.
+Consequently, the same stepped weapon direction is visible on the host and every joining client.
+Protocol version 4 is required; version 3 clients cannot join a version 4 server.
+
+## Carried weapon hands and player layering
+
+A carried weapon is rendered as part of its owning player's draw operation, not in a global
+weapon pass. `Main.renderPlayerWithWeapon(...)` draws the weapon immediately before or after the
+matching `Player`, while the player's place in the world's Y/Z ordering remains unchanged.
+
+`defaultWeaponHand` in `characters.json` selects the initial hand. Knight defaults to `right` and
+Rogue defaults to `left`. `Player.setWeaponHand(...)` can change it at runtime. The layer order
+mirrors when the character turns:
+
+| Weapon hand | Looking right | Looking left |
+| --- | --- | --- |
+| Left | weapon, then player | player, then weapon |
+| Right | player, then weapon | weapon, then player |
+
+The renderer also offsets the grip two pixels toward the selected anatomical hand and mirrors
+that offset with the facing direction. Its position always comes from the current player, so the
+weapon follows player movement even while an attack remains behind at its original location.
+
+`Player.hasEquippedWeapon()` guards rendering. Calling `clearEquippedWeapon()` makes the player
+render without a weapon; calling `setEquippedSwordType(...)` equips one again. Multiplayer's
+current loadout protocol always supplies one sword, while these methods prepare local gameplay for
+optional equipment later.
 
 ## Character and sword classes
 
 `Player` is now an abstract parent class containing the behavior shared by all players: input,
 animation, rendering, movement state, and wall collision. The two concrete character classes are:
 
-| Character | Class | Speed | Collision height | Body hitboxes |
-| --- | --- | ---: | ---: | ---: |
-| Knight | `KnightPlayer` | 80 | 32 | 1 rectangle |
-| Rogue | `RoguePlayer` | 110 | 26 | 2 rectangles |
+| Character | Class | Speed | Collision height | Default hand | Body hitboxes |
+| --- | --- | ---: | ---: | --- | ---: |
+| Knight | `KnightPlayer` | 80 | 32 | Right | 1 rectangle |
+| Rogue | `RoguePlayer` | 110 | 26 | Left | 2 rectangles |
 
 `PlayerFactory.create(type, x, y)` constructs the correct subclass. `CharacterType` preserves the
 small code-level identity while delegating IDs and stats to the matching entry in
 `characters.json`. The default skin ID resolves through `skins.json`; the headless server reads
 the same movement/collision data without loading textures.
 
-`SwordAttack` is the abstract parent for short-lived sword swings. It contains the shared
-owner, aim angle, lifetime, and multi-rectangle hitbox behavior. The concrete attacks are:
+`SwordAttack` is the abstract parent for short-lived sword swings. It contains the shared owner,
+aim angle, lifetime, and multi-rectangle hitbox behavior. Its X/Y/Z position and rectangles are
+set in the constructor and stay unchanged until the entity expires. The concrete attacks are:
 
 | Sword | Class | Duration | Cooldown | Hitboxes |
 | --- | --- | ---: | ---: | ---: |
@@ -141,9 +181,14 @@ owner, aim angle, lifetime, and multi-rectangle hitbox behavior. The concrete at
 
 `SwordAttackFactory.create(...)` constructs the selected attack subclass. `SwordType` preserves
 the code-level identity and resolves weapon/attack values from `weapons.json` and `attacks.json`;
-it rotates those rectangles to any aim angle. With the debug overlay enabled, Quick attacks render
-cyan for you and orange for other players, while Heavy attacks render blue for you and red for
-other players.
+it initially rotates those rectangles toward the snapped attack direction. With the debug overlay
+enabled, Quick attacks render cyan for you and orange for other players, while Heavy attacks render
+blue for you and red for other players.
+
+`SwordAttack.render(...)` is intentionally empty for now. Add a swing-effect sprite there (or in
+`QuickSwordAttack`/`HeavySwordAttack`) later; drawing with `getRenderX()` and `getRenderY()` will
+keep the effect at the attack's spawn point. `getProgress()` is available for selecting animation
+frames without changing that position. The carried sword sprite remains `WeaponRenderer`'s job.
 
 Choose a loadout with system properties:
 
@@ -222,21 +267,40 @@ if (HitboxCollision.overlaps(swordAttack, enemy)) {
 }
 ```
 
-The attack is non-solid and does not participate in player wall collision. The chosen
-`SwordType` supplies its rectangles, duration, and cooldown.
+The attack is non-solid and does not participate in player wall collision. The chosen `SwordType`
+supplies its rectangles, duration, and cooldown. Once constructed, the attack's coordinates and
+hitbox list remain fixed for the full duration even if its owner walks away.
 
-Sword rectangles rotate around the center of the player and retain their individual rotation.
-`HitboxCollision` uses an oriented-rectangle Separating Axis Theorem test, so the collision shape
-follows the visible weapon instead of expanding into a loose axis-aligned box.
+At creation, the sword rectangles rotate around the player's center to the snapped aim direction
+and retain that individual rotation. `HitboxCollision` uses an oriented-rectangle Separating Axis
+Theorem test, so the stationary collision shape does not expand into a loose axis-aligned box.
 
 In multiplayer, clients send aim angle and current attack-button state. The server detects an
 attack-button up-to-down transition, enforces the selected sword's cooldown, creates the attack
-ID, and sends the type, direction, and attack in world snapshots. The current prototype
-synchronizes and renders attacks but does not yet contain health or damage.
+ID, and sends the type, direction, and fixed spawn coordinates in world snapshots. The server no
+longer copies the owner's changing coordinates into active attacks. Each client likewise creates
+the attack at the first received coordinates and does not attach it to the player. The current
+prototype synchronizes attacks but does not yet contain health, damage, or attack-effect art.
 
-`WorldLayout` owns the map shared by the rendered world and the headless server. The server
-performs the same collision test before changing authoritative player positions, so a client
-cannot walk through a wall and later send that invalid position to other players.
+## Deterministic larger arena
+
+`WorldLayout` owns the 24x18 map shared by the rendered world and the headless server. It always
+builds the outer wall, protects an open spawn region in the lower-left, leaves regular corridors,
+and uses a fixed `MAP_SEED` to place random interior walls in the remaining cells. This gives the
+arena variation without allowing the server and clients to disagree about collision geometry.
+
+Floor and wall artwork is deterministic too. `GameWorld` calls `WorldLayout.tileVariant(...)`
+with the tile's row, column, shared seed, and a floor/wall salt. It no longer creates a new
+unseeded `Random` per client. Therefore the host and every joining client select the same texture
+variant at every coordinate, not merely the same floor/wall order.
+
+To create a different shared arena, change `MAP_SEED` in `WorldLayout`. All players must run the
+same build because the current protocol does not transmit the map. To alter its shape, edit
+`MAP_COLUMNS`, `MAP_ROWS`, `INTERIOR_WALL_CHANCE`, or the spawn/corridor rules in `createMap()`.
+
+The server performs the same collision test before changing authoritative player positions, so
+a client cannot walk through an outer or interior wall and later send that invalid position to
+other players.
 
 UDP is used because game inputs and snapshots are time-sensitive. A newer input or snapshot
 supersedes an older lost one. The numeric port does not affect speed; `54555` is simply an

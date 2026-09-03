@@ -13,7 +13,7 @@ import com.conquerTheWorld.game.objects.weapons.swords.SwordType;
 import java.util.EnumMap;
 import java.util.Map;
 
-/** Draws right-pointing pixel-art weapon sprites rotated around their grip pixel. */
+/** Draws a carried weapon at its player's hand, adjacent to that player in layer order. */
 public final class WeaponRenderer implements Disposable {
     private final Map<SwordType, Texture> textures = new EnumMap<>(SwordType.class);
 
@@ -28,15 +28,21 @@ public final class WeaponRenderer implements Disposable {
         Player player,
         SwordAttack activeAttack
     ) {
-        SwordType swordType = activeAttack == null
-            ? player.getEquippedSwordType()
-            : activeAttack.getSwordType();
-        float angleDegrees = activeAttack == null
+        SwordType swordType = player.getEquippedSwordType();
+        if (swordType == null) {
+            return;
+        }
+        boolean matchingAttack = activeAttack != null
+            && activeAttack.getSwordType() == swordType;
+        float angleDegrees = !matchingAttack
             ? player.getAimAngleDegrees()
-            : activeAttack.getRenderAngleDegrees();
+            : activeAttack.getCarriedWeaponAngleDegrees();
 
         Texture texture = textures.get(swordType);
-        float handX = player.getRenderX() + player.getDrawWidth() * 0.5f;
+        float facing = player.isFacingRight() ? 1f : -1f;
+        float handSide = player.getWeaponHand() == WeaponHand.RIGHT ? 1f : -1f;
+        float handX = player.getRenderX() + player.getDrawWidth() * 0.5f
+            + facing * handSide * 2f;
         float handY = player.getRenderY() + player.getDrawHeight() * 0.48f;
         float drawX = handX - swordType.getGripX();
         float drawY = handY - swordType.getGripY();

@@ -196,10 +196,12 @@ public class Main extends ApplicationAdapter {
         batch.begin();
 
         for (RenderableObject object : gameWorld.getRenderables()) {
-            object.render(batch);
+            if (object instanceof Player) {
+                renderPlayerWithWeapon((Player) object);
+            } else {
+                object.render(batch);
+            }
         }
-
-        renderEquippedWeapons();
         batch.end();
 
         renderDebugHitboxes();
@@ -342,25 +344,17 @@ public class Main extends ApplicationAdapter {
         uiFont.draw(batch, text, drawX, drawY);
     }
 
-    private void renderEquippedWeapons() {
-        if (networkClient == null) {
-            Player localPlayer = gameWorld.getPlayer();
-            if (localPlayer != null) {
-                weaponRenderer.render(
-                    batch,
-                    localPlayer,
-                    gameWorld.getActiveAttackForPlayer(0)
-                );
-            }
-            return;
-        }
+    private void renderPlayerWithWeapon(Player visiblePlayer) {
+        SwordAttack activeAttack = gameWorld.getActiveAttackForPlayer(visiblePlayer);
+        boolean renderWeapon = visiblePlayer.hasEquippedWeapon();
+        boolean weaponFirst = visiblePlayer.rendersWeaponBeforePlayer();
 
-        for (Map.Entry<Integer, Player> entry : gameWorld.getNetworkPlayers().entrySet()) {
-            weaponRenderer.render(
-                batch,
-                entry.getValue(),
-                gameWorld.getActiveAttackForPlayer(entry.getKey())
-            );
+        if (renderWeapon && weaponFirst) {
+            weaponRenderer.render(batch, visiblePlayer, activeAttack);
+        }
+        visiblePlayer.render(batch);
+        if (renderWeapon && !weaponFirst) {
+            weaponRenderer.render(batch, visiblePlayer, activeAttack);
         }
     }
 
