@@ -1,33 +1,45 @@
-#  ConquerTheWorld
+# Conquer the World: Scrapborn
 
-A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://github.com/libgdx/gdx-liftoff).
+An in-development libGDX action roguelite about rebuilding robotic bodies from Cores, Parts, weapons,
+and recovered company technology. The first public target is a free, solo, offline demo. Multiplayer
+code currently in the repository is an experimental foundation for a later cooperative release.
 
-This project was generated with a template including simple application launchers and an `ApplicationAdapter` extension that draws libGDX logo.
+## Current prototype
 
-## Platforms
+- Responsive title and offline-play menus
+- Local arena movement, aiming, camera follow, and collision
+- JSON-defined characters, skins, swords, and attacks
+- Debug hitbox rendering
+- Experimental server-authoritative LAN host/join and discovery
 
-- `core`: Main module with the application logic shared by all platforms.
-- `lwjgl3`: Primary desktop platform using LWJGL3; was called 'desktop' in older docs.
+The authoritative scope and implementation backlog are in
+[`GAME_RELEASE_ROADMAP.md`](GAME_RELEASE_ROADMAP.md). Narrative canon is in
+[`STORY_BIBLE.md`](STORY_BIBLE.md). Code and asset placement rules are in
+[`docs/architecture/PROJECT_STRUCTURE.md`](docs/architecture/PROJECT_STRUCTURE.md).
 
-## Gradle
+## Modules
 
-This project uses [Gradle](https://gradle.org/) to manage dependencies.
-The Gradle wrapper was included, so you can run Gradle tasks using `gradlew.bat` or `./gradlew` commands.
-Useful Gradle tasks and flags:
+- `core`: shared application, content, gameplay, presentation, and networking code
+- `lwjgl3`: desktop launcher
 
-- `--continue`: when using this flag, errors will not stop the tasks from running.
-- `--daemon`: thanks to this flag, Gradle daemon will be used to run chosen tasks.
-- `--offline`: when using this flag, cached dependency archives will be used.
-- `--refresh-dependencies`: this flag forces validation of all dependencies. Useful for snapshot versions.
-- `build`: builds sources and archives of every project.
-- `cleanEclipse`: removes Eclipse project data.
-- `cleanIdea`: removes IntelliJ project data.
-- `clean`: removes `build` folders, which store compiled classes and built archives.
-- `eclipse`: generates Eclipse project data.
-- `idea`: generates IntelliJ project data.
-- `lwjgl3:jar`: builds application's runnable jar, which can be found at `lwjgl3/build/libs`.
-- `lwjgl3:run`: starts the application.
-- `test`: runs unit tests (if any).
+Android and iOS modules are planned but do not exist yet.
 
-Note that most tasks that are not specific to a single project can be run with `name:` prefix, where the `name` should be replaced with the ID of a specific project.
-For example, `core:clean` removes `build` folder only from the `core` project.
+## Run and verify
+
+On Windows:
+
+```powershell
+.\gradlew.bat lwjgl3:run
+.\gradlew.bat core:compileJava lwjgl3:compileJava test
+.\gradlew.bat core:networkSmokeTest
+```
+
+On macOS or Linux:
+
+```bash
+./gradlew lwjgl3:run
+./gradlew core:compileJava lwjgl3:compileJava test
+./gradlew core:networkSmokeTest
+```
+
+The desktop runnable JAR is produced by `lwjgl3:jar` under `lwjgl3/build/libs`.

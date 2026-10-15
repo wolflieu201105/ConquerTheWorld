@@ -1,0 +1,126 @@
+package com.conquertheworld.game.presentation.rendering;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.Disposable;
+import com.conquertheworld.game.gameplay.character.Player;
+import com.conquertheworld.game.gameplay.combat.weapon.WeaponHand;
+import com.conquertheworld.game.gameplay.combat.weapon.sword.SwordAttack;
+import com.conquertheworld.game.gameplay.combat.weapon.sword.SwordType;
+
+import java.util.EnumMap;
+import java.util.Map;
+
+/** Draws a carried weapon at its player's hand, adjacent to that player in layer order. */
+public final class WeaponRenderer implements Disposable {
+    private final Map<SwordType, Texture> textures = new EnumMap<>(SwordType.class);
+
+    public WeaponRenderer() {
+        for (SwordType swordType : SwordType.values()) {
+            textures.put(swordType, loadOrCreateTexture(swordType));
+        }
+    }
+
+    public void render(
+        SpriteBatch batch,
+        Player player,
+        SwordAttack activeAttack
+    ) {
+        SwordType swordType = player.getEquippedSwordType();
+        if (swordType == null) {
+            return;
+        }
+        boolean matchingAttack = activeAttack != null
+            && activeAttack.getSwordType() == swordType;
+        float angleDegrees = !matchingAttack
+            ? player.getAimAngleDegrees()
+            : activeAttack.getCarriedWeaponAngleDegrees();
+
+        Texture texture = textures.get(swordType);
+        float facing = player.isFacingRight() ? 1f : -1f;
+        float handSide = player.getWeaponHand() == WeaponHand.RIGHT ? 1f : -1f;
+        float handX = player.getRenderX() + player.getDrawWidth() * 0.5f
+            + facing * handSide * 2f;
+        float handY = player.getRenderY() + player.getDrawHeight() * 0.48f;
+        float drawX = handX - swordType.getGripX();
+        float drawY = handY - swordType.getGripY();
+
+        batch.draw(
+            texture,
+            drawX,
+            drawY,
+            swordType.getGripX(),
+            swordType.getGripY(),
+            swordType.getDrawWidth(),
+            swordType.getDrawHeight(),
+            1f,
+            1f,
+            angleDegrees,
+            0,
+            0,
+            texture.getWidth(),
+            texture.getHeight(),
+            false,
+            false
+        );
+    }
+
+    private Texture loadOrCreateTexture(SwordType swordType) {
+        Texture texture;
+        if (Gdx.files.internal(swordType.getTexturePath()).exists()) {
+            texture = new Texture(swordType.getTexturePath());
+        } else {
+            texture = createFallbackTexture(swordType);
+            Gdx.app.log(
+                "Weapons",
+                "Using generated placeholder for missing " + swordType.getTexturePath()
+            );
+        }
+        texture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+        return texture;
+    }
+
+    private Texture createFallbackTexture(SwordType swordType) {
+        int width = Math.round(swordType.getDrawWidth());
+        int height = Math.round(swordType.getDrawHeight());
+        Pixmap pixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
+        pixmap.setColor(Color.CLEAR);
+        pixmap.fill();
+
+        int middle = height / 2;
+        int handleEnd = Math.max(5, Math.round(swordType.getGripX()) + 3);
+        pixmap.setColor(0.30f, 0.16f, 0.06f, 1f);
+        pixmap.fillRectangle(0, Math.max(0, middle - 1), handleEnd, 3);
+        pixmap.setColor(0.95f, 0.72f, 0.18f, 1f);
+        pixmap.fillRectangle(handleEnd - 2, Math.max(0, middle - 3), 2, 7);
+
+        int bladeStart = handleEnd;
+        int bladeEnd = width - 2;
+        int bladeThickness = swordType == SwordType.HEAVY ? 5 : 3;
+        pixmap.setColor(0.72f, 0.78f, 0.88f, 1f);
+        pixmap.fillRectangle(
+            bladeStart,
+            middle - bladeThickness / 2,
+            bladeEnd - bladeStart,
+            bladeThickness
+        );
+        pixmap.setColor(0.95f, 0.98f, 1f, 1f);
+        pixmap.drawLine(bladeStart, middle - bladeThickness / 2, bladeEnd, middle);
+        pixmap.drawLine(bladeStart, middle + bladeThickness / 2, bladeEnd, middle);
+
+        Texture result = new Texture(pixmap);
+        pixmap.dispose();
+        return result;
+    }
+
+    @Override
+    public void dispose() {
+        for (Texture texture : textures.values()) {
+            texture.dispose();
+        }
+        textures.clear();
+    }
+}

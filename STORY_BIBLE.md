@@ -1,12 +1,15 @@
 # Conquer the World: Scrapborn - Story Bible
 
-Last reviewed: 2026-10-13  
-Status: Living story draft  
+Last reviewed: 2026-10-15
+Status: Living story draft
 Related project: *Conquer the World*
 
 This file is the canonical home for the game's story, setting, characters, terminology, and open
 narrative decisions. The original supplied narrative is preserved at the end of the file so future
 edits do not erase the source material.
+
+Implementation tasks, priorities, and release gates belong in `GAME_RELEASE_ROADMAP.md`. This file
+records only the fiction, gameplay rules that affect the fiction, and unresolved creator choices.
 
 ## Canon rules
 
@@ -73,12 +76,8 @@ that the wider civilization refuses to recognize as alive.
   stranded even when consciousness survives.
 - The emotional center is the Scrap Planet's community rather than conquest for personal power.
 
-### Still to decide
-
-- Intended age rating and how graphic mechanical injury should appear.
-- Amount of humor and how it balances the central threat.
-- Whether the story is mostly linear or shaped by player choices.
-- Whether the ending is triumphant, bittersweet, tragic, or variable.
+Open tone, choice, and ending decisions are tracked as PRES-Q02 and NAR-09 under **Open creator
+decisions**.
 
 ## The world
 
@@ -182,8 +181,9 @@ Established gameplay canon:
   unfinished transfer.
 - The USB exists only within the current stage and cannot be extracted to a personal base.
   Persistent possessions, ownership, research, blueprints, and progression synchronize to the cloud.
-- Each download room contains a server-randomized number of prepared bodies from 1 through the
-  current player count, strongly weighted toward containing exactly 1.
+- Each download room contains a run-randomized number of prepared bodies from 1 through the current
+  player count, strongly weighted toward containing exactly 1. The offline simulation generates the
+  result in the demo; a later server will authoritatively reproduce the same seeded rule.
 - The bodies, Cores, and Parts are associated with the company behind the current stage. Each Part
   independently selects a company-associated model/variant: 94.9% weak, 5% normal, and 0.1%
   exceptionally strong. Mechanically different tiers use distinct model IDs; copies of the same
@@ -332,6 +332,11 @@ manufacturing blueprint unlocks. Once researched, stronger variants require prog
 materials: exceptional costs more than normal, and normal costs more than weak. Exact model costs
 remain balance data rather than universal fixed values. Manufacturing completes immediately when
 the player confirms it and has the blueprint and materials; there is no production timer or wait.
+
+Non-starter Core research uses the same keep-or-consume choice. Unlocking a Core blueprint requires
+five extracted physical copies of that exact Core model, all consumed through explicit research
+submission. Copies of different Core models cannot be mixed. Until submitted, every copy remains
+usable equipment. The default Neutral starter blueprint is permanently known and exempt.
 The player configures an entire robot loadout containing one required Core, one optional weapon
 slot, and six optional Part slots. The company saves the exact selected models/variants and empty
 slots as a reusable template, calculates and displays the total material cost of all included items,
@@ -339,6 +344,35 @@ and manufactures one complete copy immediately after confirmation. There is no m
 or automatic production queue; another copy requires another confirmation and payment of its
 recalculated total. `Create New Robot` always produces new item instances and never consumes or
 substitutes matching stored equipment.
+
+The company keeps one persistent universal-currency balance. It is safe persistent progression and
+is never carried into or lost during a stage. Players may spend it on company upgrades or company/
+base purchases of equipment, materials, and physical blueprints. They may sell owned equipment,
+materials, and duplicate blueprints only through the company/base interface, never during a stage.
+Every sellable model has an authored selling price informed by its rarity; rarity does not change any
+other value or mechanic, and the Common Neutral starter always sells for zero. Selling any Epic,
+Legendary, or favorited item requires an additional explicit warning and confirmation. Favorited
+items trigger that warning at every rarity. Players choose the exact quantity sold from a material
+stack. The company shop uses a fixed authored catalog with limited stock, including equipment,
+materials, and physical equipment blueprints; it may sell blueprint duplicates even after their
+equipment is unlocked. The stock-restoration rule is deferred until the shop UI can be playtested.
+The currency's in-world name remains open.
+
+Physical blueprints unlock authored equipment manufacturing, not material conversion. A found
+equipment blueprint has rarity and a fixed 1-by-1 spatial footprint, occupies run-inventory space,
+and must be carried through successful extraction. At the company/base, consuming it permanently
+unlocks its equipment option. An already-known or purchased duplicate remains an ordinary physical
+item that takes inventory/storage space and may be sold.
+
+All standard material-tier conversions are available automatically without blueprints. Every
+adjacent conversion uses a universal ratio of three units into one unit of the next tier. The
+interface may automatically compound that ratio to skip tiers in one confirmed operation—for
+example, nine Common units become three Uncommon units and then one distinct Rare material unit.
+An authored conversion may also require exact equipment models; the player must obtain those items,
+and the conversion consumes them as ingredients without automatically manufacturing substitutes.
+This convenience does not create differently rare copies of the same material. There is no
+dismantling option for equipment or materials and no process for recovering a crafted output's
+ingredients.
 
 A Core-only loadout is valid. A bare skeleton equipped with the zero-cost Neutral starter Core and
 no weapon or Parts can deploy into a farming stage and move normally. The underlying frame provides
@@ -359,8 +393,8 @@ and the player assembles a robot only from those existing item instances; this f
 manufactures a missing component. Undeployed equipment remains in a large paginated storage
 inventory with a finite data-defined capacity, safely outside stage risk. Pages, search, sorting,
 and filtering make the large inventory manageable but do not make its capacity unlimited. After
-full-party defeat, the lost deployed items remain gone, but each player's saved loadout template is retained and
-preselected with its current combined cost ready for replacement manufacturing. The player may
+full-party defeat, the lost deployed items remain gone, but each player's saved loadout template is
+retained and preselected with its current combined cost ready for replacement manufacturing. The player may
 leave that flow and equip a valid robot from storage instead.
 
 Immediately after every successful extraction, each player enters a storage-resolution session
@@ -375,8 +409,7 @@ or interruption.
 The surviving robot's required Core, optional weapon, and six optional Part slots remain as they were
 after successful extraction. Equipped items do not enter the storage-resolution session and do not
 consume company-storage slots. If the player later removes an equipped item into storage, it must
-fit a free slot or take
-the slot freed by an atomic equipment swap.
+fit a free slot or take the slot freed by an atomic equipment swap.
 
 Each player can improve their own persistent company. Storage expansion is one upgrade track,
 supporting both increased slot capacity on existing pages and additional pages at data-defined
@@ -387,12 +420,13 @@ Ownership and possession are separate. Each equipment item and crafting-material
 manufactured for a player or committed to company storage receives the immutable ID of its owning
 local profile or later network account. Teammates may carry, drop, or temporarily equip applicable
 items during a stage without changing the ID. The UI identifies the owner and warns a non-owner that
-the item or material cannot enter their company or research inventory. On successful extraction the
-server commits it only if that owner is personally carrying or equipping it. Anything held by a
+the item or material cannot enter their company or research inventory. On successful extraction,
+the authoritative game simulation commits it only if that owner is personally carrying or equipping
+it. Anything held by a
 non-owner or left on the ground remains in the stage and is lost at teardown, while stage failure
-destroys it under the normal deployed-item rule. Eligible unbound stage loot receives its first owner only when successful extraction
-commits it, and that owner is the player carrying or equipping it at that instant rather than its
-first picker.
+destroys it under the normal deployed-item rule. Eligible unbound stage loot receives its first
+owner only when successful extraction commits it, and that owner is the player carrying or equipping
+it at that instant rather than its first picker.
 
 Equipment lending uses no special pre-stage assignment system. The owner puts an owned Core, Part,
 or weapon into their own run inventory, joins the stage carrying it, and drops it on the ground. A
@@ -526,11 +560,92 @@ Established gameplay canon:
   the condition creates an at-risk Core reward, but the player must carry or equip it through
   successful extraction. Failure or leaving it behind loses that instance. Cores awarded safely at
   the company/base may become persistent immediately.
+- Each authored Core reward defines whether it is repeatable. Repeatable rewards may spawn again on
+  a later attempt when their Core was not extracted. A one-time reward, including an Easter egg, can
+  spawn only once per campaign/save and is permanently missable if lost. Campaign-critical Cores
+  cannot rely on this permanently missable behavior; they require a repeatable or authored recovery
+  path.
+- Successfully extracting a non-starter Core grants only that one persistent physical copy. It
+  records the model as discovered but does not unlock its manufacturing blueprint or create any
+  replacement entitlement. If that instance is later lost, the player must reacquire it through an
+  eligible source unless its blueprint has been unlocked separately.
+- A non-starter Core blueprint unlocks only after the player explicitly submits and consumes five
+  extracted physical copies of that exact Core model. Different model IDs cannot share progress.
+  Until submission, each copy remains usable equipment. The default Neutral starter is exempt
+  because its blueprint is permanently known.
+- Every physical copy sharing a stable Core model ID is mechanically identical. Its type percentages,
+  archetype or no-archetype state, base stats, passive behavior, main ability or lack of one, costs,
+  tags, compatibility, and Resonance data come from the model rather than random instance rolls. Any
+  mechanically different version is a separate Core model ID.
+- A Core family may have weak, normal, and exceptional variants, each represented by a separate
+  deterministic model ID. Quality is defined by the Core's Neutral percentage: more Neutral content
+  means a weaker tier, while less Neutral content means a stronger tier. Each variant has separate
+  five-copy research progress and its own blueprint.
+- Core quality uses exact Neutral percentages: weak variants are `50% Neutral`, normal variants are
+  `25% Neutral`, and exceptional variants are `0% Neutral`. The default `100% Neutral` starter is a
+  special fallback outside the ordinary quality tiers.
+- Every quality variant preserves its Core family's base Machinery/Organic/Alien ratio. The ratio is
+  scaled proportionally into the share left after Neutral: weak uses the remaining `50%`, normal uses
+  the remaining `75%`, and exceptional uses the full family ratio. A `70% Organic / 30% Machinery`
+  family therefore becomes weak `50% Neutral / 35% Organic / 15% Machinery`, normal `25% Neutral /
+  52.5% Organic / 22.5% Machinery`, and exceptional `70% Organic / 30% Machinery`.
+- Weak, normal, and exceptional variants within the same Core family have identical base stats,
+  subtype, passive, main ability, costs, cooldowns, tags, effects, compatibility, and Resonance data.
+  Their type composition is the only mechanical difference. Its Neutral percentage already changes
+  outgoing and incoming damage through the weighted type-matchup calculation.
+- Neutral intentionally smooths matchups. It can improve a family's otherwise disadvantaged damage
+  multiplier while reducing its stronger matchups and adding Neutral's defensive vulnerabilities.
+  Therefore, weak, normal, and exceptional are general quality labels rather than a promise that the
+  higher tier has a better multiplier in every individual matchup. For example, pure Machinery deals
+  `0.5x` to Alien, while a `50% Machinery / 50% Neutral` weak variant deals `0.625x`.
+- A Core family's weak, normal, and exceptional variants share the same base visual assets. Optional
+  add-ons or overlays may be switched on or off for each tier so players can distinguish them without
+  requiring three completely separate visual or animation sets.
+- Ordinary Core families use a consistent quality progression: weak looks least complete and most
+  contaminated, normal looks cleaner and has more finished add-ons, and exceptional looks cleanest
+  and most complete. Explicitly special Cores may instead receive their own authored tier design.
+- Core quality is visible both on an equipped robot and in the Core's item/loadout presentation. The
+  same item picture or portrait can represent that Core as ground loot. Opening run inventory shows
+  only ground loot within pickup range as a vertically scrollable list on the left. Desktop hover or
+  touchscreen tap reveals that item's own stats and uses rarity color to show its rarity before pickup,
+  without an automatic comparison against equipped gear or a required additional non-color rarity
+  marker. Pickup requires dragging the list entry into a valid spatial-grid position; clicking does
+  not auto-place it. Eligible loot is determined by a balance-defined circular pickup radius centered
+  on the player, cannot be reached through solid walls, and disappears from the list immediately upon
+  leaving range. The pickup radius has no visible world outline. Every item receives a stable,
+  sortable creation/spawn ID; default `Newest` order sorts that ID newest-first. Players may instead
+  sort by Rarity, Item Type, Name, or occupied-cell-count Inventory Size, and every sort can be
+  reversed. Equal primary-sort values use creation/spawn ID newest-first as their deterministic tie-
+  breaker. The chosen sort key and direction persist after inventory closure and application restart.
+  Rarity defaults to highest-first—Legendary, Epic, Rare, Uncommon, then Common; Item Type uses Core,
+  Weapon, Part, Material, then Blueprint in its forward direction. Combat and the rest of the stage
+  continue while the interface prevents the player from moving, attacking, or using abilities,
+  leaving them vulnerable. Taking damage does not close the inventory. Damage shakes the world camera
+  throughout the stage, including behind the
+  partially transparent inventory, while the inventory itself stays anchored and does not display a
+  separate damage-warning overlay. Each hit contributes shake according to its damage as a percentage
+  of the player's maximum health. Rapid hits accumulate, the total decays over time and remains
+  clamped, and players can reduce or disable the final shake in settings.
+- Every item has a rarity, including Cores, weapons, Parts, materials, physical equipment blueprints,
+  and the default Neutral starter. The initial ordered rarities are Common, Uncommon, Rare, Epic, and
+  Legendary, with the Neutral starter set to Common. Rarities come from an extensible data registry
+  rather than a closed enum, so more types may be added later. Their initial colors are gray, green,
+  blue, purple, and gold in that order. Rarity is fixed by the item model, so every physical copy of
+  that model has the same rarity.
+  It describes selling price and drop frequency but never changes stats, abilities, or other combat
+  mechanics. Weak, normal, and exceptional remain separate Core-quality
+  labels rather than rarity names. The Common Neutral starter remains worth zero when sold.
+- Each material kind is one exact model with one fixed rarity; the same material does not have
+  alternate-rarity versions. Material stacks merge only when their exact material model and ownership
+  match. Crafting recipes reference exact input and output models with no other material substituted,
+  and authored recipes may produce materials as well as consume them.
 - The Neutral starter Core is a permanent default blueprint in ordinary company manufacturing, not
   a separate order service. Once the tutorial awards the player's first company, they may manufacture
   repeated copies through the normal interface. Each copy costs zero materials or currency, sells
-  for zero, yields zero materials when dismantled, and cannot contribute research-sample progress.
+  for zero, cannot be dismantled, and cannot contribute research-sample progress.
   This recovery path never deletes or locks equipment left safely in company storage.
+- Loot generation begins with one global rarity/drop-frequency table and then applies the current
+  stage difficulty's authored modifiers. Exact probabilities and modifier curves remain balance data.
 - Core-type effectiveness follows `Machinery > Organic > Alien > Machinery`. Advantage is `1.5x`,
   matching types are `1.0x`, and disadvantage is an intentionally punishing `0.5x`. Against a
   single-type enemy, the game calculates a weighted sum from the Core's composition. A 70% Organic/
@@ -544,8 +659,7 @@ Established gameplay canon:
   sides are hybrid, the game multiplies each attacker share by each defender share and that type
   pair's matchup value, then adds every contribution:
   `typedMatchupMultiplier = sum_i sum_j(attackerShare_i * defenderShare_j * matchup_i_j)`. For
-  example, a
-  70% Organic/30% Machinery Core against a 60% Alien/40% Machinery enemy produces
+  example, a 70% Organic/30% Machinery Core against a 60% Alien/40% Machinery enemy produces
   `(0.70 * 0.60 * 1.5) + (0.70 * 0.40 * 0.5) + (0.30 * 0.60 * 0.5) +
   (0.30 * 0.40 * 1.0) = 0.98x`. A pure enemy is simply 100% of one type.
 - Type effectiveness is a base-damage multiplier. Every weapon or damaging ability supplies its own
@@ -560,20 +674,8 @@ Established gameplay canon:
   regeneration, stun duration, status-effect chance or duration, movement, carrying capacity, or
   any other non-damage value; those mechanics follow their own rules.
 
-Open rules:
-
-- How a one-time quest or story-event Core can be recovered if its physical reward is lost before
-  extraction, so campaign progression cannot become permanently blocked.
-- Any required controller equivalent for combat-option cycling and whether desktop also needs a
-  directly bound keyboard alternative to scrolling.
-- Whether every person has a Core or whether some consciousnesses use different storage systems.
-- Whether the player's original Core is unique, one of a product line, or reproducible.
-- Whether a normal Core-room change also uses the reusable USB/data-transfer device or a larger
-  built-in transfer system based on the same technology.
-- What happens when a Core is physically destroyed after its latest backup.
-- Whether a restored backup is legally, emotionally, and philosophically considered the same person.
-- What happens during a network/cloud outage and how much local consciousness state a robot can
-  retain until synchronization resumes.
+Unresolved consciousness and Core-transfer rules are tracked as ID-01 through ID-06 under **Open
+creator decisions**. Controller bindings are implementation decisions tracked only in the roadmap.
 
 ### Bodies and Parts
 
@@ -617,10 +719,8 @@ Established gameplay canon:
 - Equipping a Resonant Part strengthens the Core but gives up the alternative ability another Part
   could have provided.
 
-Open rules:
-
-- Whether cosmetic layers are separate from functional Parts.
-- How a Part's original purpose influences its new ability.
+Unresolved frame, cosmetic, and Part-history rules are tracked as SYS-02 and SYS-03 under **Open
+creator decisions**.
 
 ### Resonance
 
@@ -634,8 +734,8 @@ the other's design, or a Part may have been infected or altered until it communi
 other manufacturer's Core.
 
 Each cross-manufacturer pairing should have a discoverable reason rather than functioning as an
-unexplained statistical bonus. The precise technical reason that Resonance prevents a Part from
-providing its full independent ability at the same time remains open.
+unexplained statistical bonus. The exact mechanical scope and fictional cost of Resonance remain
+open under SYS-01.
 
 ### Power and survival
 
@@ -643,8 +743,7 @@ providing its full independent ability at the same time remains open.
 - Working power and replacement machinery become scarcer as nearby scrap is picked clean.
 - Reclaimed facilities allow the settlements to move from short-term scavenging toward reliable
   production and long-term planning.
-- It remains undecided whether energy is a moment-to-moment player resource, a stage resource, a
-  settlement resource, or some combination.
+- The role of energy remains open under SYS-05.
 
 ## Factions and groups
 
@@ -811,7 +910,7 @@ and creating that Core still need clarification before the scene is fully canoni
 | Persistent ground loot | Dropped items remain in their rooms for the entire stage attempt and can be recovered by backtracking |
 | Core/Part Resonance | Manufacturer-based synergy with an explicit opportunity cost |
 | Core type contribution | Machinery, Organic, Alien, or Neutral share expressed as a percentage of a Core's normalized composition |
-| Neutral type | Deliberately weak special type usable by the pure starter and later hybrids: 0.75x outgoing to primary types, 1.25x incoming from them, and 1.0x against Neutral |
+| Neutral type | Deliberately weak special type usable by the pure starter and later hybrids: 0.75x outgoing to primary types, 1.25x incoming from them, and 1.0x against Neutral; its weighted share intentionally smooths strong and weak matchups |
 | Core archetype/subtype | One unblended Speed, Tankiness, Strength, Shielder, or Specialist theme for ordinary Cores; the default Neutral starter has none |
 | Core-type effectiveness | Damage-only, double-weighted attacker-versus-defender multiplier using the primary cycle plus Neutral's special 0.75x/1.25x/1.0x matchups |
 | Manufacturer lineage | Build compatibility and discoverable history between technologies |
@@ -839,8 +938,8 @@ and creating that Core still need clarification before the scene is fully canoni
 | USB/data-transfer device | Reusable tool that moves active consciousness from a fallen body into a prepared body |
 | Original Parts recovery | Any party member may backtrack to the death location to reclaim equipment |
 | Teammate equipment recovery | A teammate may carry/use another player's dropped equipment, but must return it physically so its owner carries/equips it at extraction |
-| Part analysis | Uses a recovered sample to begin understanding and reproducing its technology |
-| Blueprint unlock | Consumes five samples of the exact same Part variant/model ID; related quality variants unlock separately |
+| Equipment analysis | Explicitly consumes a recovered Part or non-starter Core as a research sample instead of keeping it usable |
+| Blueprint unlock | Consumes five samples of the exact same Part variant/model ID or non-starter Core model ID; each model tracks separately |
 | Create New Robot | Immediately manufactures a saved loadout with one required Core, an optional weapon, and six optional Parts after calculating the included items' combined cost |
 | Equip Existing Robot | Assembles a loadout from loose Core, Part, and weapon instances already held in company storage; never manufactures missing items |
 | Equipment loan | Owner carries gear into a stage and drops it for a teammate; it extracts only if physically returned to and held/equipped by the owner |
@@ -883,7 +982,7 @@ Early stages should teach the room graph gradually: first clear a combat room, r
 choices, encounter a build-change or recruitment room, and finally reach a clearly designated final
 objective room.
 
-Farming stages can later revisit the same authored room library in different server-generated
+Farming stages can later revisit the same authored room library in different seeded, run-generated
 arrangements for material collection. Story and lore stages keep fixed graphs so character moments,
 discoveries, and dramatic pacing remain consistent.
 
@@ -910,81 +1009,90 @@ Not yet written. The established direction is to prepare the planet, unite settl
 critical facilities, rescue people, and confront the approaching operation. The final opponent,
 method of stopping Clean Slate, fate of the Hub/company, and ending remain open.
 
-## Story questions requiring creator decisions
+## Open creator decisions
 
-These are ordered by how strongly they affect the campaign and game systems.
+Only genuinely unresolved decisions are listed here. Resolution, controller scope, exact storage
+capacity, and other implementation or balance choices remain in `GAME_RELEASE_ROADMAP.md`.
 
-1. **Early death:** Is the person who dies the unique experiment, an ordinary playable crew member,
-   or a non-player companion?
-2. **New Core:** After that death, do the survivors recover the same person's consciousness, create
-   a new person/Core from the body, or convert an ordinary person's mind into a transferable Core?
-3. **Player Core:** Is the Core fixed as the player's identity, or can players choose different
-   Cores as the current mechanic requires? If Cores are selectable, what remains the same person?
-4. **Resonance cost:** Why must a Resonant Part strengthen the Core instead of also providing its
-   complete independent ability?
-5. **Whole-body frames:** Beyond the six confirmed Part slots, can the underlying body/frame itself
-   be changed, or is it only a presentation and stat container?
-6. **The company's plan:** What did the technicians intend to do that caused the player to resist?
-7. **Company takeover:** Is the conquered company the experiment's creator or another manufacturer,
-   and does "conquer" mean taking a facility, gaining legal control, defeating its leadership, or
-   assuming control of the entire corporation?
-8. **The Hub's guilt:** Does Hub leadership know the planet contains people, or is population data
-   being hidden from it?
-9. **Clean Slate:** What will the cleanup operation physically do to the planet and its inhabitants?
-10. **Deadline:** How much story time remains before Clean Slate arrives, and can the player delay
-    it?
-11. **Main antagonist:** Who provides a recurring face/voice for the opposition before the final
-    operation arrives?
-12. **Campaign goal:** Does the player seek recognition, evacuation, military defense, control of
-    the cleanup fleet, destruction/reform of the Hub, or another solution?
-13. **Meaning of conquest:** How does the current title *Conquer the World* connect to protecting the
-    Scrap Planet and the player's values?
-14. **Death and backups:** Does restoration return the consciousness exactly as it was at the last
-    save, losing every memory formed afterward? What else is lost with the mission body?
-15. **Settlement inhabitants:** Were they created as machines, uploaded from organic lives, born
-    from emergent machine consciousness, or drawn from several origins?
-16. **Story delivery:** Will stages use dialogue, portraits, in-engine scenes, logs, environmental
-    storytelling, or voiced cinematics?
-17. **Choice:** Can the player make decisions that change settlements, relationships, stages, or the
-    ending?
-18. **Finale:** What action permanently prevents the Scrap Planet from being treated as waste?
-19. **Farming generation:** Which authored room categories, connection rules, difficulty rules, and
-    minimum/maximum counts control a randomized farming stage?
-20. **Unknown paths:** Should an unknown path show any neutral visual clue such as distance or door
-    shape, or must every path remain completely indistinguishable?
-21. **Backtracking exceptions:** Can story events permanently close or alter a connection even
-    though normal cleared-room backtracking is allowed?
-22. **Assembly-room refusal:** If a connected player remains outside the assembly room and refuses
-    to enter, must the host kick them or should another party-management option exist?
-23. **Core transfer source:** Does an ordinary Core-room change move the active consciousness
-    directly, or activate the latest continuously synchronized cloud state after pausing the body?
-24. **Recruitment:** Why is each follower trapped or stranded, and do they return to their own life,
-    stay at the settlement, or remain available as a non-party character after the stage?
-25. **Non-critical follower loss:** Can an ordinary temporary follower die permanently, be backed
-    up, or appear again in a later farming run or story stage? Story-critical NPCs are protected
-    unless the creator explicitly authors their death.
-26. **Final-room naming:** Should every final objective be called a boss room even when it contains
-    lore or a non-combat objective, or should "final objective room" be the broader term?
-27. **Later farming attempt:** After full-party defeat and remanufacturing, does retrying a randomized
-    farming stage generate a new seed or rebuild the previous room graph?
-28. **Non-item run loss:** Deployed equipment and uncommitted loot are lost; which follower state and
-    temporary objectives, if any, survive when a failed party returns to base preparation?
-29. **Cloud operator:** Is the consciousness cloud operated by the conquered company, a reclaimed
-    facility, the Hub, or a network the Scrap Planet builds for itself?
-30. **Spectator communication:** Can spectators use voice/text/pings with living teammates, or is
-    communication restricted to prevent revealing information?
-31. **Limited recovery bodies:** Because living players may also claim or loot prepared bodies, how
-    does the party resolve competing claims: physical first use, host choice, party vote, or another
-    rule?
-32. **Quality visibility:** Can players see each prepared Part's quality before transferring or
-    looting, or must they inspect/analyze it first?
-33. **Production research cost:** Five identical Part-model samples are consumed when the blueprint
-    unlocks; what additional analysis time, materials, facility level, or manufacturer knowledge is
-    also needed?
-34. **Company storage balance - intentionally deferred:** During storage implementation and
-    playtesting, choose the initial page count and page sizes, how both values change at each upgrade
-    level, and what materials or company milestones each level requires.
+### Story direction
 
+1. **NAR-01 — Early death:** Is the person who dies on the first or second mission the unique
+   experiment, an ordinary playable crew member, or a non-player companion?
+2. **NAR-02 — Core breakthrough:** Does the crew restore that same consciousness, transfer it into a
+   newly functional Core, or create a new consciousness from the repaired body?
+3. **NAR-03 — Original company plan:** What did the experiment's creators intend to do that caused
+   the player to resist?
+4. **NAR-04 — Company takeover:** Is the conquered company the experiment's creator or another
+   manufacturer, and does conquest mean facility capture, legal control, leadership defeat, or
+   control of the entire corporation?
+5. **NAR-05 — Hub responsibility:** Does Hub leadership know the Scrap Planet contains people, or is
+   its population being hidden?
+6. **NAR-06 — Clean Slate:** What will the operation physically do, how long remains before it
+   arrives, and can the player delay it?
+7. **NAR-07 — Opposition:** Who gives the opposition a recurring face or voice before the final
+   operation arrives?
+8. **NAR-08 — Campaign resolution:** What does the player ultimately seek, how does that fulfill the
+   title *Conquer the World*, and what permanently prevents the planet from being treated as waste?
+9. **NAR-09 — Structure and ending:** How linear is the story, which choices have persistent
+   consequences, and is the ending triumphant, bittersweet, tragic, or variable?
+10. **NAR-10 — Population origins:** Were Scrap Planet inhabitants manufactured as machines,
+    uploaded from organic lives, born as emergent machine consciousnesses, or drawn from several
+    origins?
+
+### Consciousness and technology
+
+1. **ID-01 — Core use:** Does every conscious person require a Core, or do some use another storage
+   or embodiment system?
+2. **ID-02 — Ordinary Core changes:** Does a Core room use the reusable USB technology, a larger
+   transfer machine, or another process?
+3. **ID-03 — Destruction and restoration:** What happens when an occupied Core is physically
+   destroyed, and why is a consciousness lost in a failed USB transfer despite continuous
+   synchronization?
+4. **ID-04 — Restored identity:** Do the characters, law, and culture regard a restored synchronized
+   consciousness as the same person?
+5. **ID-05 — Cloud ownership:** Who operates the consciousness cloud, and what happens during an
+   outage or loss of access?
+6. **ID-06 — Early chronology:** Where do the early death, first Core breakthrough, Backup Terminal,
+   continuous synchronization, and company takeover fall on one exact timeline?
+
+### Parts, Resonance, and research
+
+1. **SYS-01 — Resonance cost:** What exact gameplay effects can Resonance strengthen, how can
+   multiple Parts combine, and why does the Resonant choice cost the Part's independent ability?
+2. **SYS-02 — Frames and cosmetics:** Can the underlying skeleton/frame be changed, and are cosmetic
+   layers separate from functional Parts?
+3. **SYS-03 — Part history:** How strongly should a Part's original industrial purpose determine its
+   combat or utility ability?
+4. **SYS-04 — Research prerequisites:** Beyond five exact-model samples, does production require
+   analysis time, materials, a facility level, or manufacturer knowledge?
+5. **SYS-05 — Energy:** Is energy a moment-to-moment combat resource, a stage resource, a settlement
+   resource, or a combination?
+
+### Stages, followers, and cooperation
+
+1. **STG-Q01 — Farming generation:** What room categories, graph limits, difficulty rules, and
+   minimum/maximum room counts control farming stages, and does a failed retry use a new seed?
+2. **STG-Q02 — Unknown paths:** May exits provide neutral clues such as distance or door shape, or
+   must all unknown paths be visually indistinguishable?
+3. **STG-Q03 — Backtracking exceptions:** May authored story events permanently close or alter an
+   otherwise traversable connection?
+4. **NPC-Q01 — Followers:** Why is each temporary follower stranded, what happens to them after the
+   stage, and can a non-critical follower die permanently?
+5. **COOP-Q01 — Uncooperative players:** In later multiplayer, besides host kick, what happens if a
+   player refuses to enter an assembly room?
+6. **COOP-Q02 — Spectators:** Can spectators communicate with living teammates through voice, text,
+   or pings?
+7. **COOP-Q03 — Recovery-body claims:** When prepared bodies are scarce, are competing claims
+   resolved by first interaction, host choice, party vote, or another rule?
+8. **LOSS-Q01 — Non-item failure state:** Which temporary follower or objective states, if any,
+   survive a failed attempt?
+
+### Presentation
+
+1. **PRES-Q01 — Story delivery:** Which combination of dialogue, portraits, in-engine scenes, logs,
+   environmental storytelling, and voice acting will the game use?
+2. **PRES-Q02 — Tone and rating:** What age rating, mechanical-injury detail, and amount of humor are
+   intended?
 ## Suggested additions - not canon yet
 
 These additions would strengthen the existing story without replacing its premise:
@@ -1033,7 +1141,7 @@ These additions would strengthen the existing story without replacing its premis
 | Battle assembly room | Pre-combat room whose door opens only when all active players are present | Gameplay canon |
 | Final objective room | Required room whose boss, objective, achievement, or lore event secures the stage and unlocks extraction | Gameplay canon |
 | Post-clear recovery | Backtracking phase after the final objective, before the player explicitly extracts | Gameplay canon |
-| Post-clear danger | Traps, hazards, and surviving threats remain lethal; death before extraction still fails the run |
+| Post-clear danger | Traps, hazards, and surviving threats remain lethal; death before extraction still fails the run | Gameplay canon |
 | Final-room extraction | Configured exit players return to after post-clear looting to finish the stage | Gameplay canon |
 | Extraction quorum | Half of active living players rounded up starts a 10-second party countdown; all present is immediate | Post-demo gameplay canon |
 | Downed extraction | Counts for quorum during the revive window, but still-downed players are dead when extraction resolves | Post-demo gameplay canon |
@@ -1049,13 +1157,21 @@ These additions would strengthen the existing story without replacing its premis
 | Part model | Stable definition shared by every identical copy; fixes stats, ability, footprint, compatibility, effects, and Resonance data | Gameplay canon |
 | Personal base | Persistent player-owned location for inventory, research, and manufacturing | Gameplay canon |
 | Part sample | Usable recovered Part deliberately consumed for research instead of kept/equipped; five identical-variant samples unlock that variant's blueprint | Gameplay canon |
-| Blueprint | Persistent knowledge allowing a researched Part to be manufactured | Gameplay canon |
+| Core sample | Usable extracted non-starter Core deliberately consumed instead of kept/equipped; five identical-model samples unlock that Core blueprint | Gameplay canon |
+| Core model | Stable definition shared by every identical Core copy; fixes all mechanical data, with variations represented by different model IDs | Gameplay canon |
+| Core quality variant | Separately researched family model: weak has 50% Neutral, normal 25%, and exceptional 0%; its remaining share preserves the family's primary-type ratio, variants share other mechanics/base visuals, and ordinary tiers progress from contaminated/incomplete to clean/complete unless specially authored; the 100% Neutral starter is outside these tiers | Gameplay canon |
+| Item rarity | Fixed model data for every Core, weapon, Part, material, and physical equipment blueprint; initially Common gray, Uncommon green, Rare blue, Epic purple, and Legendary gold; describes selling price and drop frequency without changing stats; expandable later | Gameplay canon |
+| Universal currency | Safe persistent company/base balance received from selling there; purchases upgrades, equipment, materials, and blueprints; never deployed or lost in stages; final in-world name open | Gameplay canon |
+| Physical equipment blueprint | Found/purchased 1-by-1 item with fixed rarity; a found copy must be extracted and consumed at the company/base to unlock authored equipment manufacturing; known duplicates remain sellable items | Gameplay canon |
+| Material forging | Automatically available immediate exact-model conversion using universal 3:1 adjacent-tier steps; tier skipping compounds the ratio, and authored conversions may consume exact equipment as ingredients | Gameplay canon |
+| Field loot inspection | Semi-transparent run inventory lists unobstructed loot inside an invisible, balance-defined circular radius; hover/tap reveals stats, drag-to-grid collects it, stable creation ID supplies default ordering and tie-breaking, reversible persistent rarity/type/name/cell-count sorts are available, and world-camera damage shake leaves the vulnerable player's stable inventory open | Gameplay canon |
+| Blueprint | Persistent knowledge allowing a researched Part or Core model to be manufactured | Gameplay canon |
 | Run | One stage attempt; failure returns the party to base manufacturing before another can begin | Gameplay canon |
 | Run inventory | Temporary loot committed only when carried/equipped through post-objective extraction; all of it is lost on failure | Gameplay canon |
 | Deployed equipment | Previously owned Core, Parts, and equipment risked in a run and lost if that run fails | Gameplay canon |
 | Persistent owner ID | Immutable local-profile/account ownership attached to stored equipment and materials and preserved through all stage possession changes | Gameplay canon |
 | Base storage | Large but finite paginated company inventory of loose undeployed equipment kept safe from stage failure | Gameplay canon |
-| Storage-resolution session | Mandatory post-extraction view of carried inventory beside company storage; only manually stored carried possessions survive confirmation |
+| Storage-resolution session | Mandatory post-extraction view of carried inventory beside company storage; only manually stored carried possessions survive confirmation | Gameplay canon |
 | Active equipped loadout | Surviving Core, weapon, and Parts remain equipped after extraction and occupy no company-storage slots | Gameplay canon |
 | Company improvement | Persistent per-player facility upgrades, including larger storage pages and additional pages | Gameplay canon |
 | Cloud encounter log | Persistent record of spawned enemies and directly observed facts; not a complete official wiki | Gameplay canon |
@@ -1067,7 +1183,10 @@ These additions would strengthen the existing story without replacing its premis
 
 ---
 
-# Preserved canonical narrative draft
+# Preserved original narrative draft
+
+This is the source draft that established the setting. It is retained for reference and inspiration;
+if it conflicts with an approved rule above, the current canon above takes precedence.
 
 ## Scrapborn
 
@@ -1230,336 +1349,54 @@ There were still people to bring home, facilities to reclaim, and a planet to ke
 
 # Change log
 
-- **2026-10-14:** Required extraction for every Core awarded inside a stage, including quest and
-  story/world-event rewards. Completing the condition creates physical at-risk loot; only carrying
-  or equipping it through extraction makes it persistent. Safe base/company awards may commit
-  immediately.
-- **2026-10-14:** Defined three acquisition paths for non-starter Cores: discoveries inside stages,
-  quest rewards, and story/world events. Ordinary in-stage Core loot still requires successful
-  extraction; the persistence timing of event and quest rewards remains open.
-- **2026-10-14:** Defined the playable opening image. The discarded player falls from the sky in a
-  badly damaged scrap frame and lands on the Scrap Planet with their consciousness already housed in
-  the installed default Neutral Core.
-- **2026-10-14:** Defined mobile combat-option switching. The on-screen weapon slot is a touch-cycle
-  control whose icon shows the active option; with one equipped weapon, taps alternate between that
-  weapon and `Unarmed`.
-- **2026-10-14:** Kept the skeleton melee strike available with a weapon equipped. Desktop scrolling
-  cycles between the equipped weapon and an `Unarmed` option; this holsters/draws the weapon without
-  unequipping or moving it. Touch and other required input equivalents remain open.
-- **2026-10-14:** Defined the universal skeleton attack as a close-range melee strike from the
-  underlying frame. Exact reach, damage, timing, hit shape, animation, and weapon-input interaction
-  remain implementation or balance decisions.
-- **2026-10-14:** Added a universal weak basic attack to the underlying skeleton/frame. It requires
-  no weapon, Parts, or Core ability, letting the ability-less Neutral starter farm recovery materials;
-  its base damage still receives the equipped Core's type multiplier exactly once.
-- **2026-10-14:** Removed the default Neutral starter's Core ability entirely. It remains a valid
-  Core-only deployable loadout with basic movement. The newer skeleton-attack rule above resolves its
-  zero-cost combat source.
-- **2026-10-14:** Made the default Neutral starter the sole no-archetype Core. It receives no Speed,
-  Tankiness, Strength, Shielder, or Specialist benefit. The newer entry above also removes the basic
-  farming-capable Core ability previously recorded here.
-- **2026-10-14:** Made the Core the only required deployable loadout component. The weapon and all
-  six Parts may be empty. The newer no-ability decision above leaves the starter's attack source open.
-- **2026-10-14:** Replaced the bespoke `Order Starter Core` service with a simpler permanent default
-  Neutral Core blueprint in ordinary company manufacturing. It costs zero to manufacture, sells and
-  dismantles for zero, requires no research, and cannot provide research-sample progress. This newer
-  rule supersedes the three special-order entries below.
-- **2026-10-14:** Kept `Order Starter Core` available regardless of how many starter Cores the player
-  already owns. Ordered starter Cores always sell for zero, preventing free orders from generating
-  currency; dismantling and research behavior remain open.
-- **2026-10-14:** Set the free `Order Starter Core` service to unlock with the player's first company
-  after the tutorial. It remains a company/base-preparation action and cannot be used during stages.
-- **2026-10-14:** Made `Order Starter Core` free. It consumes no currency, materials, or other
-  persistent resource, guaranteeing a recovery path; its availability and anti-exploit rules remain
-  open.
-- **2026-10-13:** Allowed later hybrid Core models to contain a Neutral percentage. Every Neutral
-  share participates in the standard double-weighted formula using its established matchup values;
-  the full four-type composition must still total 100%.
-- **2026-10-13:** Defined Neutral's damage matchups. Neutral deals `0.75x` to Machinery, Organic, and
-  Alien; those types deal `1.25x` to Neutral; and Neutral versus Neutral is `1.0x`. The ordinary
-  weighted formula handles primary-type hybrid opponents.
-- **2026-10-13:** Replaced the opening Machinery Core with a deliberately weak, pure Neutral starter
-  Core. Added an `Order Starter Core` recovery action at the company so a player can resume farming
-  after losing a deployed build without affecting safe stored gear. Exact Neutral matchup values and
-  order safeguards remain open.
-- **2026-10-13:** Set the opening progression. A new game starts with only one baseline 100%
-  Machinery Core, and completing the story tutorial grants the player a small company as their
-  persistent base. The newer entry above supersedes the starter's Machinery type and resolves the
-  reset as an explicit company order.
-- **2026-10-13:** Set a minimum of 10 distinct Core models for the free public demo without imposing
-  a maximum. The starting unlock count and methods for obtaining the remaining demo Cores stay open.
-- **2026-10-13:** Made Core archetypes/subtypes flexible themes rather than standardized passive
-  packages. Each Core model receives individually authored stats and mechanics while remaining
-  recognizably faithful to its selected subtype.
-- **2026-10-13:** Kept Core archetypes/subtypes pure. Each Core has exactly one Speed, Tankiness,
-  Strength, Shielder, or Specialist classification; only the Machinery/Organic/Alien composition may
-  use percentage blending.
-- **2026-10-13:** Made Core-model coverage intentionally incomplete. The type/archetype taxonomy is
-  not a required 15-model grid, some combinations may be absent, and no pure Core is required because
-  Core models may be hybrid by design.
-- **2026-10-13:** Confirmed that consciousnesses are not permanently bound to one Core model. During
-  base preparation, players may transfer into any Core they own; in-stage changes still require an
-  authorized Core room or an explicit consciousness-recovery flow.
-- **2026-10-13:** Restricted Core-type effectiveness to damage. It does not modify healing, shields,
-  crowd control, status effects, movement, carrying capacity, or any other non-damage mechanic.
-- **2026-10-13:** Made typed damage bidirectional. Player attacks compare the equipped Core against
-  the enemy, while enemy attacks compare the enemy against the player's equipped Core using the same
-  formula in reverse. The reversed 60% Alien/40% Machinery attacker versus 70% Organic/30%
-  Machinery Core example equals `1.02x` before mitigation.
-- **2026-10-13:** Defined hybrid-enemy effectiveness. Enemies may have normalized Machinery,
-  Organic, and Alien percentages; every Core share is paired with every enemy share, each pair is
-  weighted by its matchup value, and all contributions are added. The confirmed 70% Organic/30%
-  Machinery versus 60% Alien/40% Machinery example equals `0.98x`.
-- **2026-10-13:** Defined Core-type effectiveness as a base-damage multiplier. Weapons and damaging
-  abilities provide their own base damage, then multiply it by the current equipped Core-versus-
-  enemy effectiveness. The source controls base damage; the Core composition controls the matchup.
-- **2026-10-13:** Defined the Core taxonomy. Cores combine Machinery, Organic, and Alien percentages
-  totaling 100% and use one of five archetypes: Speed, Tankiness, Strength, Shielder, or Specialist.
-  Matchups follow Machinery > Organic > Alien > Machinery at intentionally strong
-  `1.5x`/`1.0x`/`0.5x` effectiveness. Against a pure target, hybrid effectiveness is the weighted sum;
-  the confirmed 70% Organic/30% Machinery versus Alien example equals `1.20x`. Exact demo Core count
-  remains open.
-- **2026-10-13:** Deferred exact company-storage numbers until the feature is implemented and
-  playtested. The finite, paginated, upgradeable structure remains canon, while starting pages,
-  slots per page, upgrade amounts, and costs remain balance data to determine later.
-- **2026-10-12:** Kept the surviving robot's Core, weapon, and Parts equipped after successful
-  extraction. Equipped gear stays outside the storage-resolution session and uses no company-storage
-  slots; only carried inventory must be manually stored or discarded.
-- **2026-10-12:** Replaced the abstract pending-loot view with the player's extracted current
-  inventory shown beside company storage. The newer entry above clarifies that equipped gear remains
-  equipped and outside this session. Nothing moves automatically; on confirmation, every carried
-  item not manually stored is discarded after a loss warning. Storage upgrades can both enlarge
-  existing pages and add pages.
-- **2026-10-12:** Made the storage-resolution session immediate and mandatory after every successful
-  extraction. All returned and newly claimed possessions begin pending, with no attempted automatic
-  placement; players manually store or discard each one. Confirmed that every player can improve
-  their own company, with finite storage expansion as an upgrade track.
-- **2026-10-12:** Added a post-extraction storage-resolution session. Returned and newly claimed
-  possessions remain protected while the player reorganizes finite paginated company storage. The
-  newer entry above clarifies that this session always opens and performs no automatic placement.
-- **2026-10-12:** Made company storage finite rather than unlimited. It remains large and uses pages,
-  search, sorting, and filtering, while its page size and total capacity are data-defined balance
-  values. The exact capacity and upgrade rules remain open.
-- **2026-10-12:** Made wrong-owner extraction warnings non-blocking. The game identifies every
-  owner-bound item/material stack that will be left behind, then allows the extraction action or
-  countdown to continue normally without pausing, resetting, or requiring the gear to be returned.
-- **2026-10-12:** Removed automatic return of owner-bound possessions. Ownership does not retrieve
-  an item from the stage: the owner must personally carry or equip it when extraction resolves.
-  Anything held by a teammate or left on the ground remains behind and is lost, even after a
-  successful run. Borrowed gear must therefore be physically returned before extraction.
-- **2026-10-12:** Set unowned-loot ownership at extraction: the eligible player carrying or equipping
-  an item or material stack when extraction resolves receives it, regardless of who first picked it
-  up. Ground loot is not assigned. Also replaced the formal pre-stage loan proposal with physical
-  lending: the owner carries gear into the stage and drops it for a teammate. The newer entry above
-  clarifies that its owner ID does not return it automatically.
-- **2026-10-12:** Added pre-stage equipment loans. A player may manufacture or select an owned Core,
-  Part, or weapon for a teammate's starting loadout while retaining immutable ownership in their own
-  company inventory. This formal-assignment interpretation was superseded by the physical
-  carry-and-drop rule above. Materials remain non-transferable.
-- **2026-10-12:** Extended immutable account ownership to crafting materials. Bound materials cannot
-  be given, traded, deposited, or merged into another player's company. Material stacks merge only
-  when model and owner ID match; bound and unbound quantities remain separate. The newer physical
-  possession rule above requires the owner to carry the bound stack at extraction.
-- **2026-10-12:** Defined company storage as loose Cores, Parts, and weapons rather than assembled
-  robots. Added immutable persistent-owner IDs to stored equipment. Teammates may carry or use
-  another player's item during a stage, but cannot retain or research it. The newer physical
-  possession rule above removes automatic owner return. Eligible unbound stage loot binds
-  to its final carrier only when extraction commits it.
-- **2026-10-12:** Separated `Create New Robot` from `Equip Existing Robot`. Creating always pays the
-  combined cost and manufactures an entirely new configured loadout without pulling matching items
-  from storage. Equipping existing uses only the company's large paginated inventory. After a party
-  wipe, lost deployed items stay lost, but their saved loadout configuration returns preselected and
-  ready to recalculate and manufacture; players may use safe stored equipment instead.
-- **2026-10-12:** Clarified that a saved manufacturing configuration is an entire robot loadout,
-  not a single-item recipe. It records the Core, weapon, six optional Part slots, exact variants,
-  and empty slots. The base calculates the combined material cost and immediately produces one
-  complete loadout per confirmation; additional copies recalculate and charge the full total.
-- **2026-10-12:** Limited manufacturing to one item per confirmation, with no batch quantity or
-  automatic production queue. This entry's single-item interpretation was superseded by the
-  whole-loadout clarification above.
-- **2026-10-12:** Removed all manufacturing time. A valid manufacturing action completes
-  immediately once the player has the blueprint and materials. The previous time-scaling rule is
-  superseded; stronger variants require more materials, but never more waiting.
-- **2026-10-12:** Made Part manufacturing scale with variant strength. Normal variants require more
-  materials than weak variants, while exceptional variants require more than normal variants.
-  Exact material costs are defined per model for balancing.
-- **2026-10-12:** Made manufacturing research variant-specific. Each weak, normal, or exceptional
-  Part variant requires five recovered copies of its own exact model ID. Samples cannot be mixed
-  across variants, and unlocking one blueprint does not unlock the rest of the Part family.
-- **2026-10-12:** Made Part models deterministic. Every copy with the same stable model ID has
-  identical stats, ability, slot, effects, footprint, compatibility, and Resonance data, with no
-  random per-instance stat rolls or affixes. Recovery-body rarity now selects among distinct
-  company-associated weak, normal, or exceptional model variants using the existing 94.9%/5%/0.1%
-  chances.
-- **2026-10-12:** Confirmed that Parts modify base statistics in addition to granting abilities or
-  Resonance. Data-defined modifiers include health, movement speed, armor, energy, inventory cells,
-  and other validated stats; the skeleton supplies baseline values and empty slots add nothing.
-  Current health and energy clamp immediately when their maxima decrease, and discarded excess is
-  not restored by returning to the previous build. When a maximum increases, the current numeric
-  value remains unchanged and the added capacity must be restored normally. Every Part has its own
-  per-stat levels/values, including bonuses, neutral effects, and penalties for build tradeoffs.
-- **2026-10-12:** Defined later-co-op extraction quorum as half of active living players rounded up.
-  Reaching quorum starts a 10-second countdown that extracts the whole party; getting every active
-  living player into the point extracts immediately. The solo player therefore extracts immediately.
-  Once started, the countdown continues even if presence later falls below quorum. Dead spectators
-  are excluded; disconnected retained living bodies keep counting until the host kicks them and are
-  present only when physically inside the extraction point. Downed players count during their
-  15-second revival windows and use their body positions for presence, but a player still downed at
-  extraction counts as dead and loses their carried/equipped items.
-- **2026-10-12:** Located successful extraction in the final room. Each final-room type defines
-  whether its extraction point appears, activates, or opens after its boss, objective, achievement,
-  interaction, or lore clear condition. Players must return there after post-clear looting.
-- **2026-10-12:** Added post-clear recovery. Clearing the final objective now secures the stage and
-  unlocks extraction without immediately ending the attempt. Players may backtrack for persistent
-  ground loot, then use an explicit extraction action; only carried/equipped items become persistent.
-  Traps, environmental hazards, and surviving threats remain dangerous, and death before extraction
-  still fails the run; cleared combat encounters do not repopulate automatically.
-- **2026-10-12:** Made all ground loot persist at its recorded location for the entire stage attempt,
-  including across room transitions, backtracking, room unloading/reloading, and save/resume. It
-  never despawns because of time or distance. The post-clear recovery rule above resolves how the
-  player may return for it before extraction.
-- **2026-10-12:** Replaced variable-sized inventory grids with one predetermined 15-by-15 canvas.
-  Torsos and their Core Resonances activate subsets of that canvas; the starter torso activates a
-  predefined 3-by-3 region, while no torso leaves zero cells active and drops all carried inventory.
-  When a confirmed torso/Core change deactivates occupied cells, every affected whole item drops
-  safely into the cleared room instead of blocking the change or being destroyed.
-- **2026-10-12:** Initially considered a 3-by-3 no-torso fallback and variable grid sizes. The newer
-  fixed-canvas rule above supersedes that representation: the starter torso owns the 3-by-3 region,
-  no torso activates zero cells, and torso-specific masks and Resonance cells preserve the intended
-  progression.
-- **2026-10-12:** Applied the torso-provided spatial inventory to Parts, weapons, unequipped Cores,
-  and crafting materials. All use data-defined footprints and the same placement, transformation,
-  dropping, run-loss, and extraction rules. Identical crafting materials stack up to 99 units per
-  footprint, with overflow requiring another stack and grid placement.
-- **2026-10-12:** Defined temporary run inventory as a spatial cell grid supplied by the equipped
-  torso. Carried Parts use data-driven rectangular or irregular footprints, including 1-by-2 arms
-  and L-shaped legs. Before a torso can be removed or replaced by a smaller one, all kept items must
-  fit its resulting grid and the player must manually drop the rest into the cleared room. Players
-  may rotate footprints in 90-degree increments and flip them horizontally or vertically without
-  changing a Part's functional slot.
-- **2026-10-12:** Allowed players to equip compatible Parts looted during a stage without returning
-  to base or finding a Part room. Swapped-out Parts return to temporary run inventory, and none of
-  the stage loot becomes persistent unless the entire stage is completed. Parts may be collected
-  during combat, but equipping, removing, and swapping are allowed only after the room is cleared.
-- **2026-10-12:** Allowed every Part slot to be empty. The underlying skeleton/frame always retains
-  basic movement, but each missing Part provides no Part-derived power, ability, stats, effects, or
-  Resonance. The Core and its main ability remain usable even when every Part slot is empty.
-- **2026-10-12:** Defined six independent Part slots: head, torso, left arm, right arm, left leg,
-  and right leg. Each arm and leg side may equip a different Part model.
-- **2026-10-12:** Limited the free solo demo to story expeditions and farming expeditions. Boss
-  hunts, settlement defense, rescue/escort missions, and challenge contracts remain approved as
-  post-demo modes and will be developed in that order.
-- **2026-10-12:** Approved the first six PvE modes, in order: story expeditions, farming expeditions,
-  boss hunts, settlement defense, rescue/escort missions, and challenge contracts. Large-scale
-  raids are deferred, and competitive PvP remains out of scope.
-- **2026-10-12:** Confirmed solo/cooperative PvE as the game mode direction. Competitive PvP and
-  player-versus-player damage are out of scope for the demo and near-term roadmap; later friendly
-  fire behavior remains an optional cooperative-rule decision.
-- **2026-10-12:** Removed AI rescue from the solo demo. Defeating the sole player now ends the stage
-  attempt immediately; downed timers, teammate revival, spectating, and USB teammate recovery are
-  reserved for later multiplayer.
-- **2026-10-12:** Set the first offline public demo to solo-only with exactly one local player.
-  Same-device cooperative play remains a possible post-demo feature; later networked play still
-  targets 1–6 players.
-- **2026-10-12:** Scoped the first public demo to local/offline play only, with no LAN, Internet
-  multiplayer, cross-device play, account, or backend requirement. Cross-play is deferred until a
-  later release. The fictional cloud systems use local save data in the demo; the newer entry above
-  resolves the local-player count as solo-only.
-- **2026-10-12:** Set the supported party size to 1–6 players per room/stage, including the host,
-  with a hard maximum of six and full solo support.
-- **2026-10-12:** Limited the cloud encounter log to information players could directly observe.
-  Hidden statistics, weaknesses, unseen behaviors, and drop rules are not revealed automatically;
-  players can investigate them and create their own community wiki.
-- **2026-10-12:** Confirmed that ordinary defeated consciousnesses return to the company/base through
-  cloud synchronization, while the existing lost-USB-payload exception remains. Stage entry is now
-  a one-way commitment with no retreat or early return. Failed attempts lose all deployed equipment
-  and collected loot but never touch base-stored items. Every enemy that actually spawned is saved
-  to a persistent cloud encounter log so players can prepare for later attempts.
-- **2026-10-12:** Clarified that full-party defeat does not immediately start a "next run." The
-  party loses every deployed item and all recovered run loot, returns to company/base preparation,
-  and must prepare complete replacement loadouts before entering another stage. The newer
-  create-versus-existing decision above allows either manufacturing a new robot or equipping one
-  from safe company storage. The fictional method by which consciousnesses return after nobody
-  survives remains open.
-- **2026-10-12:** Made research submission an explicit keep-or-consume decision for each extracted
-  Part. Also allowed another eligible character to transfer immediately into the unoccupied
-  functional Core/body left behind by a living transfer, with no consciousness duplication.
-- **2026-10-12:** Protected story-critical NPCs from random permanent death while retaining coded
-  AI movement, combat, HP, and authored defeat outcomes. Made every deployed Core, Part, and
-  equipment instance part of the run's risk: failure loses it, while victory returns surviving gear
-  and makes recovered loot persistent through the company. A living transfer now leaves the old
-  body, functional Core, and Parts as loot without duplicating its consciousness.
-- **2026-10-12:** Confirmed that permanent USB-payload loss makes the human player begin the next
-  run as a new character selected from previously unlocked inventory. Removed early extraction:
-  only clearing the entire stage commits temporary run loot. Blueprint research consumes all five
-  required samples of the exact same Part model.
-- **2026-10-12:** Required five samples of the exact same Part model for blueprint research. Run
-  loot now enters persistent cloud inventory only after the party clears the entire stage. If the
-  run ends
-  while the USB carries an active consciousness, that consciousness is lost and cannot be recreated
-  from cloud-synchronized memories/state.
-- **2026-10-12:** Confirmed that a downed/disconnected carrier safely drops the USB and its payload
-  for another player to loot. The USB is stage-only; persistent possessions and progression use
-  cloud synchronization. Set manufacturing blueprint research to five recovered Part samples.
-- **2026-10-12:** Set recovery quality independently per Part. Removed the consciousness-transfer
-  countdown. Each download room has one reusable USB carrying one consciousness at a time; players
-  may repeat the corpse-to-body trip sequentially while prepared bodies remain.
-- **2026-10-12:** Confirmed that the USB/data-transfer device is reusable and moves the active
-  consciousness itself. The earlier implied immediate-installation countdown was superseded: the
-  situation is urgent but has no timer. Clarified that the cloud continuously preserves
-  memories/state rather than replacing the active consciousness transfer. Set recovery Part quality
-  to 94.9% weak, 5% normal, and 0.1% exceptional.
-- **2026-10-12:** Added the physical recovery workflow: take a USB/data key from a download room,
-  backtrack to the fallen body, extract its consciousness data, and install it into a prepared body.
-  Recovery bodies use usually weak company-associated equipment with an ultra-rare high-tier roll;
-  any player may transfer into or loot them. Manufacturing blueprints require several samples.
-- **2026-10-12:** Confirmed roguelite progression. Full-party defeat ends the stage attempt and
-  returns the party to base preparation while campaign/base progress remains. The earlier rule that
-  a teammate could keep another player's dropped Parts was superseded by persistent-owner IDs:
-  owner-bound gear returns only when carried/equipped by its owner, while eligible unbound loot binds
-  to its final carrier.
-  Download rooms contain a randomized 1-to-player-count number of prepared bodies, strongly weighted
-  toward one.
-- **2026-10-12:** Replaced automatic room-clear recovery with consciousness-download rooms. These
-  rooms restore a spectator in a prepared Core/body with loaner Parts; the player can backtrack to
-  recover their original Parts. Without a reachable download room, the player spectates until the
-  stage/run ends and returns only after base preparation for a later stage. Spectator cameras may switch teammates but
-  cannot move independently. Full-party defeat ends the current game/run.
-- **2026-10-11:** Confirmed that spectators could switch among living teammates. The earlier rule
-  that room clear/full-party defeat automatically supplied replacement robots was superseded by the
-  consciousness-download-room decision above.
-- **2026-10-11:** Set revival to 5 continuous seconds and the downed window to 15 seconds. The
-  downed timer pauses while a revive is progressing. On expiration, the player spectates with a
-  player-following camera.
-- **2026-10-11:** Confirmed that a reviving teammate may continue attacking, multiple revivers do
-  not increase revival speed, and every downed player has a limited window for teammate revival.
-- **2026-10-11:** Confirmed that a disconnected body counts as present when positioned inside an
-  assembly room, remains vulnerable to enemy damage, and can be downed. Incoming damage does not
-  interrupt revival; only leaving the revive circle resets its progress.
-- **2026-10-11:** Confirmed that leaving a revive circle resets its progress. The earlier automatic
-  full-party replacement/reset rule was superseded on 2026-10-12. Disconnected bodies remain at
-  their last positions for reconnection until the host decides to kick them.
-- **2026-10-11:** Replaced forced room transitions with a pre-battle assembly room that opens only
-  when all active players are present. Added teammate revive circles that restore downed players at
-  1 HP. Changed cloud consciousness storage from periodic saves to continuous synchronization so
-  memories are retained.
-- **2026-10-11:** Confirmed cleared-room backtracking. The first valid room trigger processed by the
-  server selected the route and brought the full party into that room; this transition rule was
-  superseded by the assembly-room decision above. Added cloud consciousness storage,
-  software-driven transfer into another Core/new robot, and current-room reset on new-robot
-  activation.
-- **2026-10-11:** Confirmed that all individual rooms are predefined. Farming stages randomize the
-  connections among compatible authored rooms, while story/lore stages use fixed maps. Confirmed
-  unknown-path-only reveals, stage-limited trapped followers, and that changing Core also changes
-  its linked main ability.
-- **2026-10-11:** Established the core stage loop: companies, ships, and other facilities are
-  connected room graphs; clearing a room reveals its connected choices; clearing the final
-  objective room completes the stage. Added combat, Core-change, weapon-change, recruitment, boss,
-  achievement/objective, and lore room categories.
-- **2026-10-11:** Confirmed the title *Conquer the World: Scrapborn*. Established that one playable
-  crew member is the unique experiment while the others are ordinary inhabitants; added the early
-  tragic death/Core breakthrough, pre-mission consciousness backups, eventual company takeover,
-  and manufacturer-based Resonance. Kept ambiguous mechanics explicitly open for clarification.
-- **2026-10-11:** Created the story bible from the supplied *Scrapborn* narrative. Preserved the
-  original draft, recorded approved Core/Part/Resonance mechanics, and separated open questions and
-  non-canon suggestions from established facts.
+This compact log records major canon passes rather than every intermediate or superseded answer.
+Repository history retains the detailed edits; only the current rules above are authoritative.
+
+- **2026-10-15 — Selling and material crafting:** Added one universal currency, restricted selling
+  to the company/base, and made the currency safe progression for upgrades and company purchases.
+  Physical 1-by-1 blueprints unlock equipment only; duplicates occupy inventory and may be sold or
+  purchased. Material forging needs no blueprint, uses a universal automatically compounded 3:1 tier
+  ratio, and may consume exact equipment ingredients. Shops have fixed limited stock, material stacks
+  support partial sales, and Epic, Legendary, and favorited sales require warnings. Dismantling was
+  removed entirely, and loot rarity uses one global table modified by stage difficulty.
+- **2026-10-14 — Document cleanup:** Removed superseded decisions from the open-question list,
+  grouped the remaining questions by topic, clarified offline-versus-later-network authority, and
+  condensed the historical log.
+- **2026-10-14 — Core quality presentation:** Set a consistent contaminated/incomplete-to-clean/
+  complete visual progression for ordinary Core tiers, allowed special authored exceptions, exposed
+  stats and rarity color through the inventory's scrollable left-side loot list, and reused Core
+  presentation across equipped robots, item UI, and field loot. Loot hover performs no equipped-item
+  comparison, no extra non-color rarity marker is required, and inventory does not pause combat.
+- **2026-10-14 — Field-loot interaction:** Limited the inventory loot list to pickup range, required
+  drag-to-grid collection, mapped touchscreen tap to desktop hover, made sorting player-selectable
+  with newest-first as default, and left the stationary player vulnerable while simulation continues.
+  Pickup uses a balance-defined player-centered circle blocked by solid walls; out-of-range entries
+  disappear immediately. Stable creation/spawn IDs supply newest order. Every chosen sort can be
+  reversed and persists across restarts; size uses occupied cell count, rarity defaults to
+  Legendary/Epic/Rare/Uncommon/Common, type uses Core/Weapon/Part/Material, and equal sort values use
+  newest-first ID tie-breaking. The pickup circle is not drawn. Every item model has one fixed,
+  extensible rarity using the initial gray/green/blue/purple/gold palette; rarity affects selling price
+  and frequency rather than stats, and the zero-value Neutral starter is Common. Damage leaves the
+  inventory open and shakes the stage camera behind its semi-transparent, screen-stable UI. Shake
+  scales by damage percentage of maximum health; rapid hits accumulate before decay and clamping,
+  subject to reduced/off accessibility settings.
+- **2026-10-14 — Core system:** Finalized the Machinery/Organic/Alien cycle, Neutral matchups,
+  double-weighted damage formula, five Core archetypes, deterministic Core families, and
+  weak/normal/exceptional variants. Quality variants use 50%/25%/0% Neutral, preserve their family's
+  primary-type ratio, share all other mechanics and base visuals, and may use optional visual
+  add-ons. The 100% Neutral starter remains outside those tiers.
+- **2026-10-14 — Starter and Core progression:** Established the falling-from-the-sky opening, the
+  ability-less zero-cost Neutral starter, universal skeleton melee, Core acquisition and recurrence,
+  physical extraction, five-copy exact-model research, and the permanent starter blueprint.
+- **2026-10-12 — Run and progression rules:** Established one-way stage entry, post-objective
+  extraction, total deployed-item risk, safe base storage, encounter logging, deterministic Parts,
+  five-copy research, immediate whole-loadout manufacturing, ownership, storage resolution, spatial
+  run inventory, and persistent ground loot.
+- **2026-10-12 — Demo and later multiplayer scope:** Set the first release to a solo offline demo on
+  desktop, Android, and iOS, with story and farming expeditions. Preserved later 1–6-player
+  cross-platform cooperative PvE, including downed, revive, spectator, USB recovery, assembly-room,
+  and extraction-quorum rules.
+- **2026-10-11 — Story and stage foundation:** Confirmed the title, preserved the original
+  *Scrapborn* narrative, defined the unique experiment and Scrap Planet conflict, established fixed
+  story stages versus randomized arrangements of authored farming rooms, and introduced
+  manufacturer-based Resonance and the eventual company takeover.

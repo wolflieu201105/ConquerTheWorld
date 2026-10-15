@@ -1,6 +1,24 @@
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 eclipse.project.name = appName + '-core'
 
+sourceSets {
+  smokeTest {
+    java.srcDir 'src/smokeTest/java'
+    compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+    runtimeClasspath += output + compileClasspath + sourceSets.main.runtimeClasspath
+  }
+}
+
+tasks.register('networkSmokeTest', JavaExec) {
+  group = 'verification'
+  description = 'Runs the standalone two-client LAN networking smoke test.'
+  dependsOn smokeTestClasses
+  classpath = sourceSets.smokeTest.runtimeClasspath
+  mainClass = 'com.conquertheworld.game.networking.testing.NetworkSmokeTest'
+  workingDir rootProject.projectDir
+  systemProperty 'game.data.dir', file("${rootProject.projectDir}/assets/data").absolutePath
+}
+
 dependencies {
   api "com.badlogicgames.ashley:ashley:$ashleyVersion"
   api "com.badlogicgames.gdx-controllers:gdx-controllers-core:$gdxControllersVersion"

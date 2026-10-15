@@ -1,6 +1,6 @@
 # Conquer the World: Scrapborn - Release Roadmap
 
-Last reviewed: 2026-10-13
+Last reviewed: 2026-10-15
 
 This is the editable plan for taking the current prototype to a public release. It is intentionally
 split into small tasks so individual items can be added, removed, reordered, or assigned without
@@ -24,7 +24,10 @@ only be scheduled after the public-demo exit criteria are met.
 - `P2` is valuable polish or a post-demo feature.
 - Use the task ID when requesting a change, for example: `Remove NET-14` or
   `Add controller rebinding after UX-14`.
-- Do not mark an item complete until its acceptance check can be demonstrated in a packaged build.
+- Do not mark an implementation item complete until its acceptance check can be demonstrated in a
+  packaged build. Decision items may be marked complete when the creator has approved the rule.
+- Task IDs are stable references. Their numeric order may differ from display order when later
+  decisions add work to an earlier subsystem.
 
 ## Confirmed requirements
 
@@ -65,9 +68,16 @@ only be scheduled after the public-demo exit criteria are met.
   consciousness, and
   insert it into an available prepared body.
 
-## Decisions needed before the scope is locked
+## Decision register
 
-These choices change the amount of work substantially. Record the final answer next to each item.
+Checked items are approved design rules; unchecked items still need a creator decision. This register
+is authoritative for gameplay scope, while `STORY_BIBLE.md` is authoritative for narrative canon.
+
+Current open-decision index:
+
+- **Demo design:** DEC-09 through DEC-12 and DEC-15.
+- **Narrative:** DEC-20 through DEC-22.
+- **Later multiplayer:** DEC-74 and DEC-148; DEC-148 depends on DEC-10.
 
 - [x] **DEC-01 (P0):** Game promise: Build a fighter around an innate Core and interchangeable body
   Parts, choose between additional abilities or resonance that strengthens the Core, and take that
@@ -105,7 +115,11 @@ These choices change the amount of work substantially. Record the final answer n
 - [x] **DEC-16 (P0):** Core and weapon changes use their special stage rooms. Parts work differently:
   players may equip, replace, or remove Parts they loot throughout the current stage without a Part
   room or a return to base. Empty Part slots are allowed by DEC-77.
-- [ ] **DEC-17 (P0):** Define how players discover, earn, craft, or unlock new Cores and Parts.
+- [x] **DEC-17 (P0):** Discover Cores and Parts as physical stage loot or authored rewards, carry or
+  equip them through successful extraction, and keep each extracted copy usable until deliberately
+  consumed for research. Five exact-model copies unlock that model's manufacturing blueprint; the
+  permanently known zero-cost Neutral starter Core is the explicit exception. Individual Core
+  sources and recurrence follow DEC-133 and DEC-150 through DEC-153.
 - [x] **DEC-18 (P0):** Stages are solo PvE in the offline demo and cooperative PvE after multiplayer
   is introduced. Competitive PvP is out of scope for the foreseeable roadmap.
 - [x] **DEC-19 (P0):** Preserve the original *Scrapborn* premise in `STORY_BIBLE.md` and use that
@@ -520,8 +534,8 @@ These choices change the amount of work substantially. Record the final answer n
 - [x] **DEC-140 (P0):** Allow repeated manufacturing of the default Neutral starter Core. Every copy
   has a fixed sale value of zero, so creating duplicates cannot generate currency.
 - [x] **DEC-141 (P0):** Treat the default Neutral starter blueprint as known from the start rather
-  than researchable. Starter Cores cannot contribute research samples and return zero materials when
-  dismantled, preventing free manufacturing from generating persistent value.
+  than researchable. Starter Cores cannot contribute research samples, have zero sale price, and
+  cannot be dismantled because the game provides no dismantling action.
 - [x] **DEC-142 (P0):** Require only a Core for a valid deployable robot. The weapon slot and all six
   Part slots may be empty. A bare skeleton equipped only with the zero-cost Neutral starter Core can
   enter a farming stage, move normally, and use the skeleton attack defined by DEC-144.
@@ -552,9 +566,190 @@ These choices change the amount of work substantially. Record the final answer n
   physical, at-risk reward and does not become persistent when the condition merely completes. The
   player must carry or equip it through successful extraction. Failure or leaving it behind loses
   that instance. A Core awarded in the safe company/base may become persistent immediately.
-- [ ] **DEC-151 (P0):** If a one-time quest or story event Core is lost before extraction, decide
-  whether its reward condition can be repeated, the Core respawns on the next attempt, or another
-  recovery path becomes available so campaign progression cannot be permanently blocked.
+- [x] **DEC-151 (P0):** Give each authored in-stage Core reward a recurrence policy. A repeatable
+  reward may spawn again on a later attempt if its Core was not extracted. A one-time reward—such as
+  an Easter egg—spawns only once per campaign/save and is permanently missable if the instance is
+  lost. Do not make campaign-critical progression depend on a permanently missable Core; required
+  Cores must use a repeatable reward or an authored recovery path.
+- [x] **DEC-152 (P0):** Successfully extracting a non-starter Core grants only that one persistent
+  physical item instance. Extraction records its discovery but does not unlock its manufacturing
+  blueprint or grant replacement copies. If the instance is later lost, the player must reacquire it
+  through an eligible source unless its blueprint was separately unlocked.
+- [x] **DEC-153 (P0):** Unlock a non-starter Core model's manufacturing blueprint by explicitly
+  submitting and consuming five extracted physical copies of that exact Core model. Copies of other
+  Core models cannot be mixed into the requirement. Until submission, each copy remains usable
+  equipment, forcing the same keep/equip-versus-research choice used for Parts. The default Neutral
+  starter blueprint remains permanently known and requires no samples.
+- [x] **DEC-154 (P0):** Make every physical copy with the same stable Core model ID mechanically
+  identical, matching the existing Part-model rule. Type percentages, archetype or no-archetype
+  state, base stats, passive behavior, main ability or lack of one, costs, cooldowns, tags, effects,
+  compatibility, and Resonance data come from the model and never roll per instance. Any mechanically
+  different Core version must use a different stable model ID.
+- [x] **DEC-155 (P0):** Allow Core families to have weak, normal, and exceptional variants as
+  separate deterministic model IDs. Define a Core variant's quality tier by its Neutral percentage:
+  higher Neutral content means a lower-quality variant, and lower Neutral content means a higher-
+  quality variant. Research remains variant-specific, so each tier requires five copies of its own
+  exact model ID.
+- [x] **DEC-156 (P0):** Use exact Neutral percentages rather than ranges for Core quality variants:
+  weak is `50% Neutral`, normal is `25% Neutral`, and exceptional is `0% Neutral`. Keep the default
+  `100% Neutral` starter as a special fallback outside the ordinary weak/normal/exceptional tiers.
+- [x] **DEC-157 (P0):** Preserve a Core family's Machinery/Organic/Alien ratio across all of its
+  quality variants. Scale that family ratio into the percentage left after Neutral: weak variants
+  place it within the remaining `50%`, normal variants within the remaining `75%`, and exceptional
+  variants use the full family ratio. For example, a `70% Organic / 30% Machinery` family becomes
+  weak `50% Neutral / 35% Organic / 15% Machinery`, normal `25% Neutral / 52.5% Organic / 22.5%
+  Machinery`, and exceptional `70% Organic / 30% Machinery`.
+- [x] **DEC-158 (P0):** Within one Core family, keep weak, normal, and exceptional variants identical
+  in base stats, subtype, passive, main ability, costs, cooldowns, tags, effects, compatibility, and
+  Resonance data. Their only mechanical difference is type composition through the tier's Neutral
+  percentage; the existing weighted type formula changes both outgoing and incoming damage.
+- [x] **DEC-159 (P0):** Retain Neutral's matchup-smoothing effect. Adding Neutral may improve a
+  family's otherwise disadvantaged matchup even though it reduces stronger matchups and introduces
+  Neutral's defensive vulnerabilities. Treat weak/normal/exceptional as general quality labels, not
+  a guarantee that a higher tier has the better multiplier in every individual matchup.
+- [x] **DEC-160 (P1):** Let a Core family's weak, normal, and exceptional variants share the same
+  base visual assets. Differentiate tiers through optional add-ons or overlays that can be enabled or
+  disabled per variant instead of requiring a completely redrawn visual or animation set.
+- [x] **DEC-161 (P1):** Use one consistent quality progression for ordinary Core families: weak
+  variants look least complete and most contaminated, normal variants look cleaner and carry more
+  finished add-ons, and exceptional variants look cleanest and most complete. Permit explicitly
+  special Cores to override this pattern with their own authored visual design.
+- [x] **DEC-162 (P0):** When the player opens run inventory, show currently available ground loot in
+  a vertically scrollable list on the left. Hovering a loot entry reveals its actual stat
+  names/values and uses its rarity color to communicate rarity before pickup; do not require hidden
+  analysis merely to learn those gameplay values.
+- [x] **DEC-163 (P1):** Show Core quality presentation in both places: on the assembled robot when
+  the Core is equipped and on the Core's inventory/loadout UI presentation. Reuse the Core's item
+  picture or portrait for its field-loot display.
+- [x] **DEC-164 (P1):** Use rarity color without requiring an additional standardized text label,
+  icon, border pattern, or silhouette. Natural model artwork may still differ between tiers, but no
+  separate non-color rarity marker is required.
+- [x] **DEC-165 (P1):** Show the hovered loot item's own stats without automatically comparing them
+  against currently equipped equipment.
+- [x] **DEC-166 (P0):** Keep gameplay and combat simulation running while run inventory and its loot
+  list are open; inventory inspection does not pause the stage.
+- [x] **DEC-167 (P0):** Include only ground loot currently within the player's pickup range in the
+  inventory's left-side loot list. Do not expose room-wide or stage-wide ground loot through this
+  panel.
+- [x] **DEC-168 (P0):** Pick up loot by dragging its entry from the left-side list into a valid
+  location in the spatial run-inventory grid. Do not auto-place a clicked loot item.
+- [x] **DEC-169 (P0):** While run inventory is open, keep the player stationary and disable their
+  attacks and abilities. Enemies, hazards, projectiles, damage, and all other stage simulation keep
+  running, so the player remains vulnerable.
+- [x] **DEC-170 (P0):** On touchscreens, tapping a loot-list entry performs the desktop hover role
+  and reveals that item's details; the player can then drag it into the spatial grid.
+- [x] **DEC-171 (P1):** Let the player choose how the left-side loot list is sorted. Use newest-first
+  as the default order.
+- [x] **DEC-172 (P0):** Define pickup range as a data-driven circular radius centered on the player.
+  Only ground items whose positions fall inside that circle are eligible for the loot list.
+- [x] **DEC-173 (P0):** Remove a ground item from the visible loot list immediately when it leaves
+  the player's pickup radius or otherwise stops being available.
+- [x] **DEC-174 (P0):** Assign every item a stable, sortable creation/spawn ID when it is first
+  created. Implement default `Newest` ordering by sorting those IDs newest-first; later drops and
+  pickups do not rewrite the ID.
+- [x] **DEC-175 (P1):** Provide player-selectable loot-list sorting by `Newest`, `Rarity`, `Item
+  Type`, `Name`, and `Inventory Size`, with `Newest` selected by default.
+- [x] **DEC-176 (P0):** Taking damage while run inventory is open does not close it. The interface
+  remains open until the player closes it or another explicit state transition requires closure.
+- [x] **DEC-177 (P0):** Solid collision walls block pickup even when an item's position lies inside
+  the circular pickup radius. Require an unobstructed pickup path rather than reaching through walls.
+- [x] **DEC-178 (P1):** Keep the exact pickup-radius distance as validated balance data instead of
+  hard-coding a final design value now.
+- [x] **DEC-179 (P1):** Let the player reverse every supported loot-list sort between ascending and
+  descending order.
+- [x] **DEC-180 (P1):** Define `Inventory Size` sorting by the number of grid cells the item's
+  footprint actually occupies, not by its bounding-box width or height.
+- [x] **DEC-181 (P1):** When `Rarity` sorting is selected, default to highest-first using each rarity
+  entry's registry sort rank. The initial order is Legendary, Epic, Rare, Uncommon, then Common.
+- [x] **DEC-182 (P1):** Use `Core`, `Weapon`, `Part`, `Material`, then `Blueprint` as the forward `Item
+  Type` sort order; reversing the sort reverses that category order.
+- [x] **DEC-183 (P0):** Give every item a rarity, including Cores, weapons, Parts, materials, physical
+  blueprints, and the default Neutral starter Core. Begin with five ordered rarities: Common,
+  Uncommon, Rare, Epic, and Legendary. Store them in an extensible data-driven registry so more
+  rarity types can be added later without changing inventory code. Core quality labels—weak, normal,
+  and exceptional—are a separate system and are not rarity names.
+- [x] **DEC-184 (P1):** When two loot entries have the same value for the player's selected primary
+  sort, break the tie deterministically by stable creation/spawn ID in descending, newest-first order.
+- [x] **DEC-185 (P1):** Persist the player's selected loot-list sort key and ascending/descending
+  direction after closing the inventory and across application restarts.
+- [x] **DEC-186 (P1):** Do not draw a pickup-radius circle or other range outline around the player.
+  The left-side loot list itself communicates which items are currently reachable.
+- [x] **DEC-187 (P0):** Receiving damage causes the world camera to shake throughout a stage,
+  including while run inventory is open. Keep the inventory interface anchored and stable rather
+  than shaking it, and do not add a separate inventory-only damage warning or overlay.
+- [x] **DEC-188 (P1):** Render run inventory with partial transparency so the ongoing world and its
+  damage shake remain visible behind it. Keep the exact opacity as UI-tuning data and preserve the
+  reduced/off shake accessibility control.
+- [x] **DEC-189 (P0):** Assign the zero-cost Neutral starter Core `Common` rarity.
+- [x] **DEC-190 (P0):** Rarity describes an item's economic value and drop frequency only. It does
+  not apply a stat multiplier, roll, affix, ability change, or any other direct combat/progression
+  modification. Here, value means selling price. The Neutral starter remains a deliberate zero-price
+  exception despite being Common.
+- [x] **DEC-191 (P0):** Fix rarity on the item model rather than rolling it per physical copy. Every
+  copy of the same Core, weapon, Part, or material model therefore has the same rarity.
+- [x] **DEC-192 (P1):** Scale damage camera-shake strength with the severity of the damage received,
+  using clamped balance data so strong hits feel stronger without producing unbounded shake. Apply
+  the player's reduced/off screen-shake setting after calculating that base strength.
+- [x] **DEC-193 (P1):** Use the initial rarity colors Common gray, Uncommon green, Rare blue, Epic
+  purple, and Legendary gold. Keep exact color values in theme data so readability can be tuned.
+- [x] **DEC-194 (P0):** Give each material kind one stable material model and one fixed rarity; do
+  not create alternate-rarity copies of that same material. Stacking therefore requires the exact
+  material model, and crafting recipes do not substitute a differently named or modeled material.
+- [x] **DEC-195 (P0):** Allow materials themselves to be crafted through authored recipes. A recipe
+  that consumes or produces a material references its exact material model.
+- [x] **DEC-196 (P1):** Calculate base damage-shake strength from damage received as a percentage of
+  the player's maximum health rather than from raw damage points.
+- [x] **DEC-197 (P1):** Accumulate shake contributions from rapid successive hits. Clamp the combined
+  result to the configured maximum, decay it over time, and then apply the player's shake setting.
+- [x] **DEC-198 (P0):** Use one persistent universal currency for selling and other authored company
+  costs. Keep its final in-world name open until the setting/economy presentation is written.
+- [x] **DEC-199 (P0):** Permit selling only through the player's company/base interface, never while
+  inside a stage. Give each sellable item model an authored base selling price informed by rarity;
+  the Neutral starter remains fixed at zero.
+- [x] **DEC-200 (P0):** Reserve physical blueprints for unlocking equipment manufacturing, such as
+  authored Core, Part, and weapon models. A found blueprint occupies run-inventory space, must be
+  carried through successful extraction, and must then be consumed at the company/base to unlock its
+  manufacturing option. Material forging never requires a blueprint.
+- [x] **DEC-201 (P0):** Allow exact lower-rarity material models to be forged into a distinct,
+  higher-rarity material model through an authored recipe, such as nine Common inputs producing one
+  Rare output through two compounded 3:1 tier steps. These are different material models, not
+  alternate rarities of the same material.
+- [x] **DEC-202 (P0):** Provide no dismantling option for equipment or materials. Selling, consuming
+  items in research/crafting, and explicit discarding are the supported ways to remove possessions.
+- [x] **DEC-203 (P0):** Complete material crafting immediately when the player confirms an available
+  valid conversion and owns its exact inputs. Do not use production timers or return ingredients from
+  its output.
+- [x] **DEC-204 (P1):** Use one global base rarity/drop-frequency table, then apply authored stage-
+  difficulty modifiers when generating loot. Keep exact probabilities and modifier curves as balance
+  data rather than hard-coded rules.
+- [x] **DEC-205 (P0):** A duplicate of an already-unlocked physical equipment blueprint remains an
+  ordinary loot item: it occupies run-inventory space, must be extracted to persist, and may be sold
+  for universal currency at the company/base.
+- [x] **DEC-206 (P0):** Use universal currency as the general progression currency for company
+  upgrades and company/base purchases of equipment, materials, and blueprints. Currency remains safe
+  in persistent company state and is never deployed into or lost in a stage.
+- [x] **DEC-207 (P0):** Standardize material-tier forging at three units of one rarity tier into one
+  unit of the next tier. Allow the interface to skip tiers by automatically compounding the same
+  ratio—for example, nine Common units become three Uncommon units and then one Rare unit in one
+  confirmed operation.
+- [x] **DEC-208 (P1):** Require an explicit sale warning and confirmation for every Epic, Legendary,
+  or favorited item. Favorited items trigger the warning regardless of rarity; Common, Uncommon, and
+  Rare items need no extra rarity-based warning unless they are favorited.
+- [x] **DEC-209 (P1):** Place physical `Blueprint` items after `Material` in the forward `Item Type`
+  sorting order.
+- [x] **DEC-210 (P0):** Give every physical equipment blueprint a fixed 1-by-1 spatial-inventory
+  footprint.
+- [x] **DEC-211 (P1):** Allow the company shop to sell a physical equipment blueprint even when the
+  player has already unlocked it. The purchased duplicate remains a normal sellable item.
+- [x] **DEC-212 (P0):** Make all standard material-tier conversions available automatically without
+  acquiring or consuming blueprints, including compounded tier skipping.
+- [x] **DEC-213 (P0):** Permit an authored material conversion to require exact equipment models as
+  additional ingredients. The player must manufacture or otherwise obtain those items, and confirming
+  the conversion consumes them along with the required materials.
+- [x] **DEC-214 (P1):** Give company shops a fixed authored catalog with limited stock. Defer the
+  exact stock-restoration rule until the shop UI and economy can be evaluated in play.
+- [x] **DEC-215 (P1):** When selling a material stack, let the player choose the exact quantity to
+  sell rather than requiring sale of the entire stack.
 
 ## Current repository snapshot
 
@@ -569,6 +764,13 @@ These choices change the amount of work substantially. Record the final answer n
   UDP server prototype.
 - [x] **NOW-07:** Server-authoritative movement and attacks with player/world snapshots.
 - [x] **NOW-08:** A two-client networking smoke-test program.
+- [x] **NOW-09:** Basic responsive title and offline-play screens route local players through
+  `Play -> New Game -> GameWorld`, support mouse/touch plus keyboard navigation, provide Back and
+  Quit actions, and visibly disable unfinished Settings, Credits, and Continue options.
+- [x] **NOW-10:** Responsibility-based, lowercase Java packages separate application flow, config,
+  content definitions, gameplay, presentation, networking, tests, and the desktop launcher. Assets
+  are grouped by data and texture purpose, while architecture/networking/reference documents live
+  under `docs` instead of production source.
 
 ### Important gaps observed in the current build
 
@@ -576,13 +778,15 @@ These choices change the amount of work substantially. Record the final answer n
 - [ ] **GAP-02 (P0):** Movement uses only two frames per direction.
 - [ ] **GAP-03 (P0):** There is no enemy damage, health, death, stage objective, reward, or completed
   PvE stage loop.
-- [ ] **GAP-04 (P0):** There is no title screen, game-mode setup screen, lobby browser, pause menu,
-  settings screen, or results screen.
+- [ ] **GAP-04 (P0):** The basic title/offline-play shell exists, but there is no boot screen,
+  stage/loadout preparation, working Continue/save flow, pause menu, settings screen, credits screen,
+  or results screen. The lobby browser remains post-demo work.
 - [ ] **GAP-05 (P2):** Post-demo multiplayer is only prototype-grade LAN networking, not production
   cross-platform Internet networking. This does not block the offline demo.
 - [ ] **GAP-06 (P1):** There is no sound, music, combat effect art, or final weapon artwork.
 - [ ] **GAP-07 (P1):** Automated gameplay, data, protocol, and rendering tests are limited.
-- [ ] **GAP-08 (P1):** The README still describes the generated starter project instead of the game.
+- [x] **GAP-08 (resolved):** Replace the generated starter README with the game overview, current
+  prototype scope, module description, documentation links, and build commands.
 - [ ] **GAP-09 (P1):** Multiple skin entries currently reuse the same player texture with a tint;
   Knight and Rogue do not yet have distinct production-ready character art.
 - [ ] **GAP-10 (P0):** The repository currently contains only the desktop launcher; Android and iOS
@@ -602,12 +806,15 @@ tested by another person.
 
 - [x] **PLAN-01 (P0):** Complete decisions DEC-01 through DEC-08.
 - [ ] **PLAN-02 (P0):** Write a five-minute core gameplay loop from spawn to match result.
-- [ ] **PLAN-03 (P0):** Define one primary win condition and one loss condition.
+- [x] **PLAN-03 (P0):** Win by clearing the final objective and completing explicit extraction; lose
+  the solo demo attempt when the player is defeated or abandons the stage before extraction.
 - [ ] **PLAN-04 (P0):** Define the minimum number of maps, characters, weapons, and modes for the demo.
 - [ ] **PLAN-05 (P1):** Create a short art-direction page with palette, sprite scale, outline,
   lighting, UI, and animation examples.
 - [ ] **PLAN-06 (P1):** Create a short audio-direction page with music mood and sound priorities.
-- [ ] **PLAN-07 (P0):** List explicit out-of-scope features for the free public demo.
+- [x] **PLAN-07 (P0):** Keep LAN/Internet multiplayer, cross-play, accounts/backends, PvP,
+  same-device co-op, boss hunts, settlement defense, rescue/escort missions, challenge contracts,
+  and large-scale raids outside the free public demo.
 - [ ] **PLAN-08 (P0):** Define measurable offline-demo success criteria such as crash rate, stage
   completion rate, frame time, loading time, input responsiveness, and save reliability.
 - [x] **PLAN-09 (P0):** Write the story premise, setting, central conflict, player role, major
@@ -656,7 +863,8 @@ tested by another person.
 - [ ] **BASE-05 (P1):** Add a formatting/static-analysis task and run it in CI.
 - [ ] **BASE-06 (P1):** Add a version string and build number shown in the UI and logs.
 - [ ] **BASE-07 (P1):** Separate development, test, and release configuration defaults.
-- [ ] **BASE-08 (P1):** Add structured logging with useful startup, network, and failure messages.
+- [ ] **BASE-08 (P1):** Add structured logging with useful startup, platform, save, and failure
+  messages; add network diagnostics when multiplayer is active.
 - [ ] **BASE-09 (P1):** Add a top-level crash handler that writes a user-shareable crash log.
 - [ ] **BASE-10 (P1):** Update `README.md` with the actual game, controls, build steps, and status.
 - [ ] **BASE-11 (P1):** Fix broken character encoding in existing Markdown documentation.
@@ -666,8 +874,9 @@ tested by another person.
 
 ## Runtime architecture
 
-- [ ] **ARCH-01 (P0):** Introduce explicit game states/screens for boot, title, lobby, gameplay,
-  pause, results, and error handling.
+- [ ] **ARCH-01 (P0):** Introduce explicit game states/screens for boot, title, base/preparation,
+  gameplay, pause, results/storage resolution, and error handling. Add a lobby state only with later
+  multiplayer.
 - [ ] **ARCH-02 (P0):** Make state transitions release/dispose resources reliably.
 - [ ] **ARCH-03 (P0):** Replace per-player texture loading with a shared asset manager.
 - [ ] **ARCH-04 (P0):** Define loading progress and a missing/corrupt-asset error path.
@@ -683,9 +892,9 @@ tested by another person.
 
 # Milestone B - Eight-direction character assets and animation
 
-**Exit gate:** Every launch character has production-approved eight-direction movement in local and
-multiplayer builds. Each direction has at least four movement frames, with no left/right-only
-fallback visible during normal play.
+**Exit gate:** Every demo character has production-approved eight-direction movement in the offline
+build. Each direction has at least four movement frames, with no left/right-only fallback visible
+during normal play. Later multiplayer reuses the same directional state and assets.
 
 ## Asset contract
 
@@ -735,6 +944,12 @@ drawn movement frames** total. If all four listed skins become unique artwork, i
 - [ ] **ART-09 (P1):** Create an artist-facing template showing safe bounds and anchor pixels.
 - [ ] **ART-10 (P0):** Define the eight-direction layer order and attachment anchors for the base
   skeleton, torso, head, left/right arms, left/right legs, held weapon, effects, and shadow.
+- [ ] **ART-11 (P1):** Define reusable Core-family presentation with data-driven tier add-ons or
+  overlays. For ordinary families, make weak look least complete/most contaminated, normal cleaner
+  with more finished add-ons, and exceptional cleanest/most complete. Allow special authored
+  overrides while reusing each family's base visual and animation assets across quality variants.
+- [ ] **ART-12 (P1):** Render the equipped Core's tier treatment on the assembled robot and create a
+  matching item/UI portrait reusable by inventory, loadout, comparison, and field-loot displays.
 
 ## Animation code and data
 
@@ -750,7 +965,8 @@ drawn movement frames** total. If all four listed skins become unique artwork, i
 - [ ] **ANIM-10 (P0):** Reset or transition animation frames cleanly when direction/clip changes.
 - [ ] **ANIM-11 (P0):** Make animation frame advancement handle long frame times correctly.
 - [ ] **ANIM-12 (P0):** Keep diagonal movement speed normalized to cardinal movement speed.
-- [ ] **ANIM-13 (P0):** Ensure remote players choose the same direction from synchronized state.
+- [ ] **ANIM-13 (P2):** For later multiplayer, ensure remote players choose the same direction from
+  synchronized state.
 - [ ] **ANIM-14 (P0):** Update weapon position and front/behind layering for all eight directions.
 - [ ] **ANIM-15 (P1):** Add optional per-direction hand/grip anchors to skin data.
 - [ ] **ANIM-16 (P1):** Add a developer animation viewer that cycles every clip and direction.
@@ -782,7 +998,8 @@ drawn movement frames** total. If all four listed skins become unique artwork, i
 
 - [ ] **ANIM-QA-01 (P0):** Walk continuously in all eight directions without a missing frame.
 - [ ] **ANIM-QA-02 (P0):** Rotate aim through 360 degrees while idle and while moving.
-- [ ] **ANIM-QA-03 (P0):** Observe every direction and frame on a remote multiplayer client.
+- [ ] **ANIM-QA-03 (P2):** For later multiplayer, observe every direction and frame on a remote
+  client.
 - [ ] **ANIM-QA-04 (P0):** Test direction boundaries immediately below, on, and above each boundary.
 - [ ] **ANIM-QA-05 (P0):** Test at 30, 60, 120, and 144 FPS for consistent animation speed.
 - [ ] **ANIM-QA-06 (P1):** Test every skin, weapon hand, and sword combination.
@@ -791,8 +1008,9 @@ drawn movement frames** total. If all four listed skins become unique artwork, i
 
 # Milestone C - Complete playable match loop
 
-**Exit gate:** Players can start a match, understand the objective, fight, win or lose, view a
-result, and choose to replay or quit without using command-line configuration.
+**Exit gate:** Players can prepare a loadout, start a stage, understand the objective, fight, extract
+or fail, resolve storage/base consequences, and choose another prepared stage or quit without using
+command-line configuration.
 
 ## Core, Parts, Resonance, and loadouts
 
@@ -818,10 +1036,11 @@ result, and choose to replay or quit without using command-line configuration.
 - [ ] **CORE-07 (P0):** Prevent invalid, incompatible, locked, or duplicate loadout combinations.
 - [ ] **CORE-08 (P0):** Add the selected Core, Parts, abilities, and Resonances to authoritative
   player state using stable IDs rather than display names.
-- [ ] **CORE-09 (P0):** Validate loadouts on the server before the player can ready up or enter a
-  stage.
-- [ ] **CORE-10 (P0):** Replicate enough loadout state for all platforms to render and simulate the
-  same player abilities.
+- [ ] **CORE-09 (P0):** Validate loadouts in the authoritative game simulation before the player can
+  confirm preparation or enter a stage; run the same validation on the server when multiplayer is
+  added.
+- [ ] **CORE-10 (P2):** For later multiplayer, replicate enough loadout state for every platform to
+  render and simulate the same player abilities.
 - [ ] **CORE-11 (P0):** Implement a shared ability framework supporting cooldowns, costs, casting,
   targeting, interruption, effects, and authoritative outcomes in both offline simulation and the
   later multiplayer server.
@@ -835,16 +1054,37 @@ result, and choose to replay or quit without using command-line configuration.
 - [ ] **CORE-15 (P0):** Lock the starting loadout at the stage boundary, allow Core and weapon
   changes only through their authorized rooms, and allow equipped Parts to be replaced or removed
   using Parts in temporary run inventory only after the current room is cleared, per DEC-78.
-- [ ] **CORE-16 (P0):** Save unlocked Cores, unlocked Parts, and the player's last valid loadout.
+- [ ] **CORE-16 (P0):** Save discovered Core models, owned physical Core instances, Core manufacturing
+  blueprints, unlocked Parts, and the player's last valid loadout as separate persistent state.
 - [ ] **CORE-41 (P0):** Implement data-defined Core acquisition sources for in-stage discoveries,
-  quests, and story/world events. Prevent duplicate reward claims, preserve stable model IDs, and
-  route every in-stage Core reward through physical possession and extraction before granting
-  persistent ownership. Allow safe company/base rewards to commit immediately.
+  quests, and story/world events, including `repeatable`, `one-time`, and optional authored-recovery
+  policies. Track one-time spawn consumption per campaign/save, prevent unintended duplicate reward
+  claims, preserve stable model IDs, and route every in-stage Core reward through physical possession
+  and extraction before granting persistent ownership. Allow safe company/base rewards to commit
+  immediately and validate that campaign-critical Cores are not permanently missable. Grant exactly
+  one physical instance per successful extraction without implicitly granting its blueprint.
+- [ ] **CORE-42 (P0):** Keep Core discovery, physical instance ownership, and manufacturing-blueprint
+  knowledge separate in data, saves, UI, rewards, and validation. Test extracting, storing, deploying,
+  losing, reacquiring, and submitting a Core without accidentally unlocking or duplicating its
+  blueprint. Require and consume five copies with the same stable model ID for non-starter research.
+- [ ] **CORE-43 (P0):** Enforce Core-model determinism in content validation, loot, manufacturing,
+  saves, and later networking. Instances may store identity, ownership, source, and non-mechanical
+  provenance, but cannot override their model's type percentages, archetype, stats, passive, ability,
+  costs, tags, compatibility, or Resonance data. Reject random per-instance Core rolls and require a
+  separate stable model ID for every mechanical variation.
+- [ ] **CORE-44 (P0):** Add Core-family and quality-tier data for weak, normal, and exceptional model
+  variants. Enforce exactly `50%`, `25%`, and `0%` Neutral respectively, keep all four type shares
+  normalized to 100%, and proportionally scale the family's base Machinery/Organic/Alien ratio into
+  the share remaining after Neutral. Share all other mechanical data across a family's tiers so type
+  composition is their only mechanical difference. Reference one shared family visual plus optional
+  per-tier add-ons/overlays, ordinary cleanliness/completeness progression, and an explicit special-
+  design override where authored. Treat the 100% Neutral starter as outside those tiers and ensure
+  research progress never crosses variant model IDs.
 - [ ] **CORE-17 (P0):** Recover safely when saved loadout content was removed, renamed, or changed.
 - [ ] **CORE-18 (P1):** Add comparison details for damage, cooldown, range, duration, and Resonance
   changes without requiring external documentation.
 - [ ] **CORE-19 (P1):** Add automated tests for compatibility, Resonance stacking, stat limits,
-  invalid builds, protocol encoding, and save migration.
+  invalid builds, and save migration. Add protocol-encoding coverage with later multiplayer.
 - [ ] **CORE-20 (P1):** Add telemetry or structured playtest logging for Core/Part pick rates and
   stage outcomes, subject to privacy choices.
 - [ ] **CORE-21 (P0):** Give every manufactured Core and Part a stable manufacturer ID and technical
@@ -859,11 +1099,13 @@ result, and choose to replay or quit without using command-line configuration.
   consciousness into any selected player-owned Core without changing player identity. Permit this
   freely during base preparation; during a stage, permit it only through an authorized Core room or
   an explicitly defined consciousness-recovery flow.
-- [ ] **CORE-26 (P0):** Implement continuous cloud memory/state synchronization with an
-  authoritative owner/version for memory/state preservation, while keeping the active consciousness
-  bound to its current Core until a USB transfer or another explicit migration occurs.
-- [ ] **CORE-27 (P0):** Activate a new robot body from the saved consciousness and selected Core,
-  then synchronize that identity/body change to every client.
+- [ ] **CORE-26 (P0):** Implement the fictional continuous cloud memory/state synchronization through
+  the demo's durable local save, with a stable owner/version for recovery. Keep the active
+  consciousness bound to its current Core until a USB transfer or another explicit migration occurs;
+  replace or extend the persistence transport only when later online accounts are implemented.
+- [ ] **CORE-27 (P0):** Activate a new robot body from the saved consciousness and selected Core in
+  the authoritative game state. Replicate that identity/body change to every client only in the
+  later multiplayer implementation.
 - [ ] **CORE-28 (P0):** When a USB-carried consciousness is permanently lost at run failure, retire
   that character identity and let the human player create/select a new character, then manufacture
   its loadout from persistent unlocks/blueprints before another stage attempt.
@@ -931,15 +1173,17 @@ result, and choose to replay or quit without using command-line configuration.
 - [ ] **INV-01 (P0):** Represent the temporary run inventory as a fixed 15-by-15 cell canvas plus an
   active-cell mask. Use an empty mask when the torso slot is empty, the predefined 3-by-3 mask for
   the starter torso, and the equipped torso plus active Resonance for every other mask.
-- [ ] **INV-02 (P0):** Represent each carried Part, weapon, unequipped Core, and crafting-material
-  item with a data-driven footprint made from one or more cells, supporting both rectangles such as
-  a 1-by-2 arm and non-rectangular shapes such as an L-shaped leg.
+- [ ] **INV-02 (P0):** Represent each carried Part, weapon, unequipped Core, crafting-material item,
+  and physical blueprint with a data-driven footprint made from one or more cells, supporting both
+  rectangles such as a 1-by-2 arm and non-rectangular shapes such as an L-shaped leg. Require every
+  physical equipment blueprint to use a 1-by-1 footprint.
 - [ ] **INV-03 (P0):** Validate placement against grid bounds, disabled cells, and occupied cells;
   never allow two carried items to overlap. Apply rotation and horizontal/vertical flips before
   validating the transformed footprint.
 - [ ] **INV-04 (P0):** Add an inventory interface for selecting, dragging, previewing, placing, and
   reorganizing item footprints with rotation and flip controls plus clear valid/invalid placement
-  feedback.
+  feedback. Require ground loot to be dragged from the in-range left-side list into a valid grid
+  position rather than auto-placing it.
 - [ ] **INV-05 (P0):** When collecting loot, place it only if its complete footprint fits; otherwise
   leave it safely in the room so the player can rearrange or choose another item.
 - [ ] **INV-06 (P0):** When a cleared-room Part swap returns the old equipped Part to inventory,
@@ -948,19 +1192,26 @@ result, and choose to replay or quit without using command-line configuration.
 - [ ] **INV-07 (P0):** Recalculate available cells atomically when a torso is equipped, removed, or
   replaced or when a Core change alters torso Resonance. Preview which items will drop, then preserve
   valid placements and place every invalidated whole item safely on the cleared-room map.
-- [ ] **INV-08 (P0):** Save and restore each item's stable instance ID, grid origin, orientation, and
-  horizontal/vertical flip state as part of temporary stage state.
+- [ ] **INV-08 (P0):** Save and restore each item's stable sortable creation/spawn ID, grid origin,
+  orientation, and horizontal/vertical flip state as part of temporary stage state. Never rewrite
+  the ID because of a drop, pickup, room transition, or save/resume.
 - [ ] **INV-09 (P1):** Add automated tests for rectangular and L-shaped placement, borders,
   overlap, every rotation/flip combination, full grids, torso-capacity changes, collection,
   automatic mask-overflow drops, swapping, material stack boundaries, splitting/merging, and save
-  restoration.
+  restoration. Cover circular range and solid-wall filtering, drag-to-grid pickup, stable-ID sorting,
+  every selected sort key in both directions, occupied-cell-count size sorting, newest-first stable-
+  ID tie-breaking, persisted sort preferences, five initial and additional registry rarities, fixed
+  model rarity, exact-model material stacking, and inventory-open damage without player movement,
+  combat actions, or automatic closure.
 - [ ] **INV-10 (P0):** Define and validate inventory footprints for every demo Part, weapon, Core,
-  and crafting-material item; reject missing or disconnected footprint data at content-load time.
+  crafting-material item, and physical equipment blueprint; reject missing or disconnected footprint
+  data at content-load time and reject any blueprint footprint other than 1-by-1.
 - [ ] **INV-11 (P0):** Implement crafting-material stacks with a hard maximum of 99 identical units
   per footprint, including partial collection, merge, split, drop, loss, extraction, and save/restore
   behavior. Require every overflow stack to occupy its own valid grid placement. Preserve one
-  ownership state per stack and permit merging only when material model and persistent-owner ID both
-  match; treat unbound stage loot as a separate ownership state until extraction commits it.
+  ownership state per stack and permit merging only when exact material model and persistent-owner ID
+  both match; treat unbound stage loot as a separate ownership state until extraction commits it.
+  Each material model supplies one fixed rarity, so instances never roll alternate rarities.
 - [ ] **INV-12 (P0):** Make torso grid definitions data-driven, including rectangular dimensions,
   active-cell masks within the 15-by-15 canvas, and torso/Core-relationship-specific Resonance cells.
   Validate every mask, define the starter torso's 3-by-3 region, and use an empty mask when no torso
@@ -969,11 +1220,26 @@ result, and choose to replay or quit without using command-line configuration.
   whose complete transformed footprints remain on active cells, remove every invalidated whole item
   from inventory, and spawn each removed item safely near the player in the current cleared room.
 - [ ] **INV-14 (P0):** Give every ground-loot item a stable instance ID, stage ID, room ID, position,
-  orientation, quantity, and state. Persist it for the entire attempt across backtracking, room
-  unload/reload, and stage save/resume, then remove it only during explicit stage teardown.
+  creation/spawn order, orientation, quantity, and state. Persist it for the entire attempt across
+  backtracking, room unload/reload, and stage save/resume, then remove it only during explicit stage
+  teardown.
 - [ ] **INV-15 (P1):** Stress-test persistent ground loot with repeated drops, room transitions,
   save/resume, collection, multiplayer ownership changes, and stage teardown without duplication,
   disappearance, or unbounded rendering/simulation work in inactive rooms.
+- [ ] **INV-16 (P0):** Add one required fixed rarity ID to every item model and resolve it through an
+  ordered, extensible registry containing display name, theme color, sort rank, selling-price data,
+  and drop-frequency data. Seed the registry with Common gray, Uncommon green, Rare blue, Epic purple,
+  and Legendary gold; assign Common to the Neutral starter; and validate every Core, weapon, Part,
+  material, and physical-equipment-blueprint reference at content-load time. Item instances inherit their
+  model's rarity without a roll. Rarity must never alter stats or abilities; there is no dismantling
+  system.
+- [ ] **INV-17 (P0):** Make standard material-tier conversions available without blueprints. Validate
+  every input/output model and quantity, prevent substitution by another material kind, consume exact
+  inputs atomically, and preserve the crafted model's fixed rarity through storage, deployment,
+  extraction, and stacking. Enforce the universal adjacent-tier ratio of three inputs to one output
+  and support one confirmed tier-skipping operation by atomically compounding that ratio, such as nine
+  Common units to one Rare unit. Allow an authored conversion to consume exact equipment models as
+  additional ingredients, with no automatic manufacturing or substitution.
 
 ## Base, research, and roguelite progression
 
@@ -993,14 +1259,19 @@ result, and choose to replay or quit without using command-line configuration.
   final eligible carrier when successful extraction commits them, then transfer them to that
   player's company rather than the first picker or host. Include equipped loot as carried by its
   wearer, leave ground loot uncommitted, and never overwrite an existing persistent-owner ID.
-- [ ] **META-05 (P0):** Add a base analysis/research process that examines a recovered Part and
-  lets its owner either retain it as usable equipment or explicitly submit and consume it as one
-  research sample toward reproduction.
-- [ ] **META-06 (P0):** Require five recovered samples of a Part before analysis can unlock its
-  manufacturing blueprint. All five must have the exact same variant/model ID and must be consumed
-  when the blueprint unlocks. Track weak, normal, and exceptional variants as separate research
-  progress and separate blueprints; define the remaining currency/material,
-  manufacturer-knowledge, and research prerequisites.
+- [ ] **META-05 (P0):** Add a base analysis/research process that examines a recovered Part or
+  non-starter Core and lets its owner either retain it as usable equipment or explicitly submit and
+  consume it as one research sample toward reproduction.
+- [ ] **META-06 (P0):** Require five recovered samples before analysis can unlock a Part or
+  non-starter Core manufacturing blueprint. All five must have the exact same variant/model ID and
+  must be consumed when the blueprint unlocks. Track weak, normal, and exceptional Part variants as
+  separate research progress and blueprints; track every Core model separately; exempt the default
+  Neutral starter blueprint; and define any remaining manufacturer-knowledge or research
+  prerequisites.
+- [ ] **META-29 (P0):** Add manufacturing for researched non-starter Core models with data-defined
+  material costs, ownership, storage, and whole-loadout integration. Never manufacture a researched
+  Core for free unless its own authored cost explicitly says so; the default Neutral starter remains
+  the zero-cost exception.
 - [ ] **META-07 (P0):** Add mass production of researched Part models/variants with explicit resource
   costs, producible-model limits, and storage rules. Use data-defined per-model costs, enforcing
   `exceptional > normal > weak` for materials. Consume the materials and deliver the Part
@@ -1021,10 +1292,10 @@ result, and choose to replay or quit without using command-line configuration.
   consciousness to transfer into any owned Core selected through this flow.
 - [ ] **META-22 (P0):** Build a large paginated company-storage interface for loose undeployed Cores,
   weapons, Parts, and other persistent equipment. Add stable paging, sorting, filtering,
-  search, item details, and clear equipped/reserved/deployed states without exposing run inventory
-  as base storage. Enforce a finite data-defined capacity, show used/maximum space on every page,
-  prevent pagination or filtering from hiding the fact that storage is full, and apply unlocked
-  company storage-capacity upgrades.
+  search, item details, favorite/unfavorite controls, and clear equipped/reserved/deployed states
+  without exposing run inventory as base storage. Enforce a finite data-defined capacity, show used/
+  maximum space on every page, prevent pagination or filtering from hiding the fact that storage is
+  full, and apply unlocked company storage-capacity upgrades.
 - [ ] **META-25 (P0):** Implement a transactional post-extraction storage-resolution session. Keep
   a durable frozen snapshot of the player's extracted carried inventory, show it beside company
   storage without automatic placement, and allow manual transfers and storage-page reordering. Keep
@@ -1074,14 +1345,14 @@ result, and choose to replay or quit without using command-line configuration.
   equip one from surviving company storage, or manufacture the zero-cost default Neutral Core to
   farm back up. Never provide free copies of stronger lost gear.
 - [ ] **META-28 (P0):** Implement the default Neutral starter blueprint through ordinary company
-  manufacturing. Give it zero manufacturing cost, sale value, and dismantling yield; exclude it from
-  research-sample progress; and ensure repeated copies cannot generate persistent value.
+  manufacturing. Give it zero manufacturing cost and sale value, exclude it from research-sample
+  progress, expose no dismantling action, and ensure repeated copies cannot generate persistent value.
 - [ ] **META-18 (P0):** Keep all item instances left in company/base storage outside the deployed
   manifest and guarantee that stage completion, failure, disconnect, or teardown cannot delete them.
 - [ ] **META-11 (P2):** For the post-demo networked release, persist each player's base progression
   across desktop, Android, and iOS with conflict-safe cloud ownership and save synchronization for
   possessions, research, blueprints, and progression.
-- [ ] **META-12 (P0):** Make multiplayer extraction/reward assignment authoritative and prevent item
+- [ ] **META-12 (P2):** For later multiplayer, make extraction/reward assignment authoritative and prevent item
   duplication or ownership changes through disconnect, reconnect, lending, pickup, death,
   extraction, stack split/merge, or host migration. Commit owner-bound equipment and materials only
   when carried/equipped by their persistent owner, never auto-route possessions held by someone
@@ -1093,6 +1364,32 @@ result, and choose to replay or quit without using command-line configuration.
 - [ ] **META-19 (P0):** Implement the demo's in-world consciousness "cloud," persistent inventory,
   blueprints, progression, and encounter log entirely through a durable local offline save. Do not
   require an account, Internet connection, or remote backend.
+- [ ] **META-30 (P0):** Add one persistent universal-currency balance to the local profile with safe
+  save/load, overflow validation, and atomic transaction history. Keep its player-facing name in data
+  until the fiction names it. Never add it to a deployed manifest or remove it because a run fails.
+- [ ] **META-31 (P0):** Add a company/base-only selling interface for owned stored equipment and
+  materials, including extracted duplicate blueprints. Show the exact currency return before
+  confirmation, derive authored prices from item model and rarity data, prevent selling during stages,
+  and keep the Neutral starter's price at zero. Require an additional explicit warning for Epic,
+  Legendary, or favorited items. For material stacks, provide a quantity selector and atomically sell
+  only the chosen amount.
+- [ ] **META-32 (P0):** Represent authored equipment-manufacturing unlocks as physical 1-by-1 blueprint
+  items found during stages or purchased at the company/base. Give them fixed rarity and selling data.
+  Commit a found blueprint only through normal successful extraction, then require the player to
+  consume it at the company/base to persistently unlock its equipment option. Keep already-known or
+  purchased duplicate blueprints as ordinary sellable items instead of consuming or discarding them
+  automatically. Do not use blueprints for material-tier conversions.
+- [ ] **META-33 (P0):** Omit dismantling from all item actions, menus, and backend transactions.
+  Ensure selling, research consumption, recipe consumption, and explicit discard cannot accidentally
+  invoke or expose a dismantling yield.
+- [ ] **META-34 (P1):** Build a data-driven global rarity/drop-frequency table and apply stage-
+  difficulty modifiers through a validated loot-generation step. Test probability boundaries,
+  deterministic seeded results, unavailable models, and modifier extremes without hard-coded tiers.
+- [ ] **META-35 (P0):** Add company/base progression purchases using the universal currency. Support
+  authored company upgrades and purchasable equipment, materials, and physical equipment blueprints.
+  Use a fixed authored catalog with limited stock, allow already-unlocked blueprint duplicates to be
+  purchased, and validate price, remaining stock, ownership, storage capacity, and unlock conditions
+  atomically. Keep stock restoration data-driven and unresolved until the shop UI is playtested.
 
 ## Approved PvE mode backlog
 
@@ -1139,14 +1436,15 @@ failure systems.
 - [ ] **STAGE-06 (P0):** Add a final encounter or objective that tests the selected Core/Part build.
 - [ ] **STAGE-07 (P0):** Grant stage rewards exactly once from the authoritative successful
   extraction result, never merely from clearing the final objective.
-- [ ] **STAGE-08 (P0):** Make all party members agree on stage ID, version, seed, difficulty, and
-  progress.
-- [ ] **STAGE-09 (P1):** Make story dialogue/cutscenes skippable without desynchronizing a party.
+- [ ] **STAGE-08 (P2):** For later multiplayer, make all party members agree on stage ID, version,
+  seed, difficulty, and progress.
+- [ ] **STAGE-09 (P2):** For later multiplayer, make story dialogue/cutscenes skippable without
+  desynchronizing a party.
 - [ ] **STAGE-10 (P1):** Add stage-specific checkpoints/recovery if the selected game structure
   needs them.
-- [ ] **STAGE-11 (P0):** Add a pre-mission cloud-synchronization check and define what happens to
-  state, equipment, and progress during restoration or a cloud/network interruption; synchronized
-  memories are preserved.
+- [ ] **STAGE-11 (P0):** Add a pre-mission consciousness-synchronization check backed by the demo's
+  local save. Define restoration behavior for interrupted writes and corrupted or unavailable local
+  data; add network-outage behavior only with later online persistence.
 - [ ] **STAGE-12 (P0):** Add the campaign event in which the crew conquers a company and unlocks
   player-controlled manufacturing/research progression.
 - [ ] **STAGE-13 (P0):** Hide unexplored rooms until the current room is cleared, then reveal its
@@ -1171,8 +1469,8 @@ failure systems.
   the extraction action.
 - [ ] **STAGE-24 (P0):** Validate that every stage has a reachable start, legal connections, at
   least one reachable final objective, and no unintended progression dead ends.
-- [ ] **STAGE-25 (P0):** Synchronize room visibility, clear state, route choice, rewards, followers,
-  loadout changes, and final completion for the entire multiplayer party.
+- [ ] **STAGE-25 (P2):** For later multiplayer, synchronize room visibility, clear state, route
+  choice, rewards, followers, loadout changes, and final completion for the entire party.
 - [ ] **STAGE-26 (P0):** Build farming-stage room graphs by authoritatively randomizing compatible
   predefined room templates from a saved seed, with the same algorithm reusable by a later server.
 - [ ] **STAGE-27 (P0):** Display each newly revealed connection as an unknown path without exposing
@@ -1194,9 +1492,10 @@ failure systems.
   rooms without replaying their completed encounter unless a reset rule explicitly applies.
 - [ ] **STAGE-35 (P0):** Place an assembly room before every battle room and keep the battle door
   locked until every active party member is physically present in the assembly room.
-- [ ] **STAGE-36 (P0):** Make the server authoritatively track assembly-room presence, open the door
-  once every party body's position is inside, count a disconnected retained body already inside as
-  present, and recalculate the requirement when players move, reconnect, or are kicked.
+- [ ] **STAGE-36 (P2):** For later multiplayer, make the server authoritatively track assembly-room
+  presence, open the door once every party body's position is inside, count a disconnected retained
+  body already inside as present, and recalculate the requirement when players move, reconnect, or
+  are kicked.
 - [ ] **STAGE-37 (P2):** Implement consciousness-download rooms that restore spectators into a
   prepared Core/body with a predefined loaner Part loadout without resetting already cleared rooms.
   Generate between 1 and the current player count of bodies, strongly weighted toward exactly 1.
@@ -1275,16 +1574,26 @@ failure systems.
 - [ ] **COMBAT-05 (P0):** Prevent the attacker from damaging itself.
 - [ ] **COMBAT-06 (P2):** For later cooperative multiplayer, resolve DEC-74 and implement the chosen
   friendly-fire rule without creating a competitive PvP mode.
-- [ ] **COMBAT-07 (P0):** Apply attack cooldown consistently in offline and networked modes.
+- [ ] **COMBAT-07 (P0):** Apply attack cooldown consistently in the offline simulation and preserve
+  the same authoritative rule when networking is added later.
 - [ ] **COMBAT-08 (P2):** For later multiplayer, add hit confirmation and damage events to the
   network protocol.
-- [ ] **COMBAT-09 (P0):** Add hurt feedback: flash, sound, effect, and optional short hit pause.
+- [ ] **COMBAT-09 (P0):** Add hurt feedback: sound, effect, optional short hit pause, and clamped
+  world-camera shake that becomes stronger as the received damage percentage of maximum health
+  increases. Accumulate rapid-hit contributions, decay the result over time, and clamp the combined
+  strength. Keep all screen-space UI, including the semi-transparent run inventory, anchored while
+  the world view shakes. Add flash only after its accessibility controls exist.
 - [ ] **COMBAT-10 (P0):** Add death state and block dead-player movement/attacks.
-- [ ] **COMBAT-11 (P0):** Add spawn and respawn rules with safe spawn placement.
-- [ ] **COMBAT-12 (P0):** Add brief spawn protection if the selected mode needs it.
-- [ ] **COMBAT-13 (P0):** Define disconnect, suicide, environmental, and simultaneous-kill scoring.
+- [ ] **COMBAT-11 (P0):** Add safe stage-spawn placement and the body-activation placement needed by
+  authorized recovery flows; the solo demo has no automatic combat respawn.
+- [ ] **COMBAT-12 (P1):** Add brief spawn or body-activation protection only if playtests show it is
+  needed.
+- [ ] **COMBAT-13 (P1):** Record a noncompetitive defeat cause for results and diagnostics, including
+  enemy, hazard, self-inflicted, and simultaneous damage; do not add kill scoring.
 - [ ] **COMBAT-14 (P1):** Add knockback only if it improves playtests and remains server-authoritative.
-- [ ] **COMBAT-15 (P1):** Add combat-state unit and integration tests.
+- [ ] **COMBAT-15 (P1):** Add combat-state unit and integration tests, including damage-to-shake
+  percentage scaling, rapid-hit accumulation/decay, maximum shake clamping, reduced/off settings,
+  and stable screen-space UI.
 - [ ] **COMBAT-16 (P2):** For later multiplayer, add an authoritative downed state before final
   death/replacement when at least one teammate can still attempt a revive.
 - [ ] **COMBAT-17 (P2):** Display a revive circle around each downed player and accumulate progress
@@ -1318,7 +1627,8 @@ failure systems.
   `typeScaledBaseDamage = sourceBaseDamage * typedMatchupMultiplier`. Resolve the attacker's and
   defender's current type compositions at hit resolution, apply the multiplier exactly once before
   later mitigation/final damage handling, and test both combat directions, weapon swaps, Core swaps,
-  target changes, and rounding boundaries.
+  target changes, rounding boundaries, and intentional Neutral smoothing in both advantageous and
+  disadvantaged matchups. Do not force quality tiers into a strictly monotonic per-matchup order.
 - [ ] **COMBAT-31 (P0):** Implement the universal weak skeleton attack as a validated base-damage
   close-range melee source available without a weapon, Parts, or Core ability and selectable as
   `Unarmed` while a weapon is equipped. Route it through COMBAT-30 exactly once, use data-defined
@@ -1345,8 +1655,8 @@ failure systems.
   new-robot manufacturing or existing company storage.
 - [ ] **GAME-10 (P2):** For later multiplayer, handle host/server shutdown with a clear client
   message.
-- [ ] **GAME-11 (P2):** For later multiplayer modes, handle ties, overtime, and
-  last-player-disconnect cases.
+- [ ] **GAME-11 (P2):** For later multiplayer, handle objective timeouts, host loss, and
+  last-player-disconnect cases without introducing competitive tie or overtime rules.
 - [ ] **GAME-12 (P0):** Build the story-integrated opening tutorial around the weak Neutral starter
   Core. Begin with the discarded player/frame falling from the sky and crashing onto the Scrap
   Planet with the Neutral Core already installed. Teach movement, combat, scavenging, Part
@@ -1403,9 +1713,13 @@ developer present. All visible placeholder content is removed or intentionally l
 ## Menus and input
 
 - [ ] **UX-01 (P0):** Add a boot/loading screen.
-- [ ] **UX-02 (P0):** Add a title menu with Play, Settings, Credits, and Quit.
+- [ ] **UX-02 (P0):** Finish the title menu's Settings and Credits destinations. The basic responsive
+  shell already provides functional Play and Quit actions while showing unfinished destinations as
+  disabled instead of pretending they work.
 - [ ] **UX-03 (P0):** Add an offline Play screen with New Game/Continue, stage/loadout preparation,
-  and Back actions. Do not show nonfunctional Create Room or Join Room actions in the demo.
+  and Back actions. The basic shell already launches the existing world through New Game, disables
+  Continue until saves exist, and supports Back; stage/loadout preparation remains. Do not show
+  nonfunctional Create Room or Join Room actions in the demo.
 - [ ] **UX-04 (P0):** Add character, skin, and weapon selection UI.
 - [ ] **UX-05 (P2):** After the offline demo, add a LAN server list instead of selecting the first
   discovered server.
@@ -1416,8 +1730,9 @@ developer present. All visible placeholder content is removed or intentionally l
 - [ ] **UX-08 (P0):** Add pause/resume, settings, abandon-stage, and quit confirmation. Clearly warn
   that abandoning after launch counts as failure and loses all deployed equipment and run loot; it
   is never a safe return-to-base action.
-- [ ] **UX-09 (P0):** Add understandable error dialogs for connection, version, data, and server
-  failures.
+- [ ] **UX-09 (P0):** Add understandable error dialogs for startup, platform, version, content-data,
+  save, and packaging failures, always with a recovery action. Add connection/server cases with later
+  multiplayer.
 - [ ] **UX-10 (P0):** Ensure keyboard navigation works on every required screen.
 - [ ] **UX-11 (P1):** Add mouse hover/focus/disabled states and UI sounds.
 - [ ] **UX-12 (P1):** Add configurable movement, attack, pause, and debug bindings.
@@ -1435,6 +1750,23 @@ developer present. All visible placeholder content is removed or intentionally l
   input cycles between the equipped weapon and `Unarmed`, holstering or drawing the weapon without
   changing the loadout. On touchscreens, tapping the visible combat weapon slot cycles options and
   updates its icon. Add any controller/keyboard equivalents selected in DEC-148.
+- [ ] **UX-19 (P0):** When run inventory opens, place currently available ground loot in a vertically
+  scrollable list on the left, filtered to a data-defined circular pickup radius centered on the
+  player and blocked by solid walls. Remove unavailable/out-of-range entries immediately. Default to
+  descending stable creation/spawn ID (`Newest`) and allow sorting by Newest, Rarity, Item Type,
+  Name, or occupied-cell-count Inventory Size; every mode supports ascending/descending reversal.
+  Resolve equal primary values by descending creation/spawn ID, and save the selected key and
+  direction across inventory closure and application restarts. Default Rarity to highest-first by
+  registry rank—initially Legendary, Epic, Rare, Uncommon, Common—and use Core, Weapon, Part,
+  Material, Blueprint as forward Item Type order.
+  Desktop hover and touchscreen tap show that item's model, rarity color, actual stat names/values,
+  relevant ability, and inventory footprint without an equipped-item comparison or mandatory
+  non-color rarity marker. Require drag-to-grid pickup rather than automatic placement. Use the same
+  Core portrait in field loot and inventory/loadout UI. Do not draw the pickup-radius boundary. Keep
+  simulation running while the interface blocks player movement, attacks, and abilities, leaving the
+  player vulnerable; taking damage does not close the interface. Make the panel partially transparent
+  while keeping it screen-stable: damage shakes the world camera behind it throughout the stage, not
+  the inventory itself, and adds no inventory-only warning overlay.
 
 ## Settings and accessibility
 
@@ -1442,8 +1774,14 @@ developer present. All visible placeholder content is removed or intentionally l
 - [ ] **SET-02 (P0):** Add fullscreen/windowed, resolution, VSync, and frame-limit settings.
 - [ ] **SET-03 (P0):** Save settings locally and recover from corrupt settings safely.
 - [ ] **SET-04 (P1):** Add UI scale and text-size options.
-- [ ] **SET-05 (P1):** Do not communicate team, danger, health, or rarity by color alone.
-- [ ] **SET-06 (P1):** Add reduced screen shake/flash options before adding those effects.
+- [ ] **SET-05 (P1):** Do not communicate team, danger, or health by color alone. Rarity is the
+  explicit exception under DEC-164: it uses tier color without requiring a standardized additional
+  marker, although item artwork and the visible stat panel still provide context.
+- [ ] **SET-06 (P1):** Add a saved screen-shake intensity control, including reduced and off choices,
+  before implementing damage shake. Scale each contribution by damage as a percentage of maximum
+  health, accumulate rapid hits, decay and clamp the combined shake to tested bounds, then apply the
+  chosen accessibility intensity. Camera shake affects the stage view but never the inventory UI.
+  Add equivalent controls before introducing any screen-flash effects.
 - [ ] **SET-07 (P1):** Add high-contrast aiming/cursor options.
 - [ ] **SET-08 (P1):** Add hold/toggle options where continuous input may be difficult.
 - [ ] **SET-09 (P1):** Test common forms of color-vision deficiency.
@@ -1560,15 +1898,18 @@ issues, and has documented support/legal/release procedures.
 ## Automated quality
 
 - [ ] **TEST-01 (P0):** Unit-test collision, movement normalization, attack cooldown, damage,
-  scoring, direction mapping, and match transitions.
+  objective state, direction mapping, and stage transitions.
 - [ ] **TEST-02 (P0):** Test JSON parsing, schema versions, cross-references, ranges, and missing
   assets.
-- [ ] **TEST-03 (P0):** Round-trip-test every network packet and protocol version rejection.
-- [ ] **TEST-04 (P0):** Convert the current network smoke program into a repeatable CI test.
-- [ ] **TEST-05 (P0):** Add an automated server-authority test that attempts invalid movement,
-  attacks, damage, and loadouts.
+- [ ] **TEST-03 (P2):** For later multiplayer, round-trip-test every network packet and protocol
+  version rejection.
+- [ ] **TEST-04 (P2):** Before the networked release, convert the current network smoke program into
+  a repeatable CI test.
+- [ ] **TEST-05 (P2):** For later multiplayer, add an automated server-authority test that attempts
+  invalid movement, attacks, damage, and loadouts.
 - [ ] **TEST-06 (P1):** Add deterministic simulation tests for identical input sequences.
-- [ ] **TEST-07 (P1):** Add long-running local and multiplayer soak tests with leak checks.
+- [ ] **TEST-07 (P1):** Add a long-running offline soak test with leak checks; extend it to
+  multiplayer before the networked release.
 - [ ] **TEST-08 (P1):** Archive test reports and release build hashes in CI.
 
 ## Manual test matrix
@@ -1637,13 +1978,14 @@ Do not publish the free public demo until every P0 gate below is true.
 - [ ] **GATE-02:** Eight directions and at least four movement frames per direction ship for every
   playable character/skin promised for the demo.
 - [ ] **GATE-03:** A complete start-match-result-rematch/quit loop works without developer tools.
-- [ ] **GATE-04:** Health, damage, death, scoring, cooldowns, and saves are controlled by the offline
-  game simulation rather than debug tools or editable UI state.
+- [ ] **GATE-04:** Health, damage, death, objective state, cooldowns, inventory, and saves are
+  controlled by the offline game simulation rather than debug tools or editable UI state.
 - [ ] **GATE-05:** Menus, settings, errors, and controls work in a packaged build.
 - [ ] **GATE-06:** The complete demo works with networking disabled and without LAN, an Internet
   connection, an account, or a remote service.
-- [ ] **GATE-07:** No known crash, save/settings corruption, remote-code-execution, authentication,
-  or easily exploited authority issue remains.
+- [ ] **GATE-07:** No known crash, save/settings corruption, remote-code-execution path, or easily
+  exploited authority or item-duplication issue remains, including in disabled prototype networking
+  code shipped with the demo.
 - [ ] **GATE-08:** Performance meets the written minimum-hardware budget.
 - [ ] **GATE-09:** All shipped content is final or deliberately labeled, licensed, and credited.
 - [ ] **GATE-10:** Fresh-install playtests succeed with players who did not build the game.
@@ -1655,8 +1997,10 @@ Do not publish the free public demo until every P0 gate below is true.
 # After the public demo
 
 - [ ] **POST-01 (P1):** Triage incoming issues by severity and publish known workarounds.
-- [ ] **POST-02 (P1):** Patch crashes, exploits, progression blockers, and severe network failures first.
-- [ ] **POST-03 (P1):** Review playtime, match completion, disconnects, and feedback against PLAN-08.
+- [ ] **POST-02 (P1):** Patch crashes, exploits, save corruption, progression blockers, and severe
+  packaging/input failures first.
+- [ ] **POST-03 (P1):** Review playtime, stage completion, crashes, performance, save reliability,
+  and player feedback against PLAN-08.
 - [ ] **POST-04 (P1):** Rebalance characters/weapons from observed outcomes and structured playtests.
 - [ ] **POST-05 (P1):** Decide the Early Access/1.0 content plan only after demo findings are reviewed.
 - [ ] **POST-06 (P1):** Keep protocol/data migration compatibility or communicate breaking versions.
@@ -1666,196 +2010,14 @@ Do not publish the free public demo until every P0 gate below is true.
 
 ---
 
-# Requested roadmap changes
+# Roadmap change requests
 
-Use this section as a scratchpad. Items can be moved into the relevant milestone after approval.
+Use stable task or decision IDs when requesting edits. New ideas should be placed directly in the
+relevant milestone after approval rather than duplicated in a second summary.
 
-## Add
+- **Add:** Nothing pending.
+- **Remove:** Nothing pending.
+- **Change or clarify:** Nothing pending.
 
-- _2026-10-11: Cross-platform desktop/Android/iOS play, Core/Parts/Resonance builds, and stage-based
-  play were incorporated into the confirmed requirements and milestones._
-
-## Remove
-
-- _Nothing requested yet._
-
-## Change or clarify
-
-- _Nothing requested yet._
-
-## Final decisions
-
-- The confirmed title is *Conquer the World: Scrapborn*.
-- The first release will be a free public demo.
-- The first public demo is entirely local/offline with no LAN or Internet multiplayer; cross-play is
-  post-demo work.
-- The first public demo is solo-only; same-device cooperative play may be reconsidered afterward.
-- The game is solo/cooperative PvE. Competitive PvP is not planned for the demo or near-term work.
-- The first approved PvE mode family, in order, is story expeditions, farming expeditions, boss
-  hunts, settlement defense, rescue/escort missions, and challenge contracts. The free solo demo
-  includes only story and farming expeditions; the remaining four modes and large-scale raids are
-  later work.
-- Defeating the solo player immediately fails the stage; AI companions do not revive the player or
-  operate the recovery USB.
-- Supported room/stage size is 1–6 players total, including the host; six is a hard maximum.
-- Eight directions are required.
-- Each direction requires at least four movement frames.
-- Desktop, Android, and iOS each receive an offline demo; players on those platforms will be able to
-  play together only in a later networked release.
-- Each character build combines a Core with selectable body Parts.
-- Every loadout has six independent Part slots: head, torso, left arm, right arm, left leg, and
-  right leg. The two arms and two legs can use different Part models.
-- Any Part slot may be empty. A bare skeleton/frame can still move but receives no Part-derived
-  power, skill, stats, effects, or Resonance from each empty slot. Any ability supplied by its Core
-  still functions even when all six Part slots are empty.
-- The weapon slot may also be empty. A Core-only skeleton is a valid deployable loadout, but the
-  default Neutral starter supplies no Core ability. The underlying frame's universal weak attack
-  provides the zero-cost recovery combat action.
-- Equipped Parts can modify base statistics as well as abilities. Data-defined modifiers include
-  health, movement speed, armor, energy, inventory cells, and other validated stats; the skeleton
-  supplies the baseline values used when slots are empty.
-- Every Part has its own level/value for each applicable stat and may provide bonuses, neutral values,
-  or penalties. Builds can therefore exchange health, armor, speed, energy, inventory space, and
-  other stats instead of every new Part being a strict upgrade.
-- If a Part change lowers maximum health or energy below its current value, clamp the current value
-  to the new maximum immediately. The discarded excess does not return if the old Part is re-equipped.
-- If a Part change raises maximum health or energy, keep the current numeric value unchanged; the
-  newly available capacity must be restored or regenerated normally.
-- Players may loot Parts throughout a stage and use them to replace or fill equipped Part slots
-  without returning to base or finding a Part room. Those Parts remain temporary run loot until the
-  stage is completed. Parts may be collected during combat, but loadout changes unlock only after
-  the current room is cleared.
-- Temporary run inventory is a spatial cell grid whose available space is determined by the
-  equipped torso. Parts, weapons, unequipped Cores, and crafting materials occupy shapes within that
-  grid, including 1-by-2 arms and L-shaped legs, so loot can be carried only when its entire
-  footprint fits. Players may rotate footprints in 90-degree increments and flip them horizontally
-  or vertically without changing a Part's functional equipment slot.
-- Every character uses a fixed 15-by-15 inventory canvas. With no torso equipped, no cells are
-  active. The starter torso activates a predefined 3-by-3 region; every other torso activates its
-  own subset of the canvas, and each compatible torso/Core Resonance relationship defines its own
-  additional active cells.
-- Identical crafting materials stack up to 99 units per footprint. Additional units require another
-  stack with its own valid grid placement; players may split and merge partial stacks only when
-  their persistent-owner IDs also match. Bound materials never merge with another owner's or with
-  unbound stage loot.
-- Before reducing capacity, players may rearrange items or drop them manually. If they confirm the
-  torso/Core change, every item that is not fully contained by the new active cells drops safely into
-  the cleared room; it is never destroyed, and the change is not blocked. Removing the torso drops
-  all carried inventory because no cells remain active, while other equipped Parts remain equipped.
-- Dropped loot remains at its recorded room position for the entire stage attempt, including through
-  backtracking, room unloading, and save/resume. It never despawns because of elapsed time or player
-  distance; the final-objective extraction behavior for uncollected ground loot is still undecided.
-- Parts can supply their own abilities or Resonate with the Core to strengthen the Core ability,
-  creating an explicit tradeoff.
-- Players select their setup before entering and fighting through a stage.
-- Each stage is a company, ship, facility, or similar location represented by connected rooms.
-- Clearing a room reveals its directly connected room choices. Clearing the designated final
-  objective through a boss, achievement/objective, or lore event secures the stage and unlocks
-  post-clear backtracking plus the final room's configured extraction point. Players must return to
-  that room and use the point after collecting any remaining loot.
-- In later co-op, `ceil(active living players / 2)` inside the extraction point starts a 10-second
-  countdown that extracts the whole party. If every active living player enters, extraction is
-  immediate; therefore the solo demo extracts immediately when its player uses the point. Once
-  started, the countdown continues even if presence later falls below the required threshold. Dead
-  spectators are excluded; disconnected retained living bodies count until the host kicks them and
-  are present only when their body is physically inside the point. Downed players count until their
-  15-second revival windows expire, using their body positions for presence. However, a player still
-  downed when extraction resolves counts as dead and loses their equipped gear and carried inventory.
-- Confirmed room categories include combat, Core change, weapon change, follower recruitment, boss,
-  achievement/objective, and lore rooms.
-- Every individual room is predefined. Farming stages randomize how compatible rooms are connected;
-  story/lore stages use fixed authored room graphs.
-- Revealed connections appear only as unknown paths, without revealing the next room type or reward.
-- Followers are trapped or stranded characters who join only for the current stage.
-- A Core and its main ability are one linked choice and change together in a Core room. The default
-  Neutral starter is the no-ability exception and leaves that ability slot empty.
-- Players may backtrack through previously cleared rooms.
-- Every battle room has an assembly room; its door opens only when all active players are present.
-- A teammate can revive a downed player by remaining in the revive circle, returning them at 1 HP.
-- Leaving the revive circle resets that revival progress to zero.
-- If everyone is downed, the current game/run ends and the party must start a new one.
-- A disconnected player's body stays at its last position for reconnection until the host chooses
-  to kick that player.
-- A disconnected body counts as present when already inside an assembly room and remains vulnerable
-  to enemies.
-- Incoming damage does not interrupt revival; leaving the revive circle resets progress.
-- Revivers may keep attacking, additional teammates do not increase revive speed, and downed players
-  have a 15-second revival window.
-- Revival takes 5 continuous seconds and pauses the 15-second downed timer while progressing.
-- An expired downed player spectates through a camera following a surviving player.
-- Spectators may switch among living teammates but cannot move the camera independently.
-- A dead teammate returns during the stage only through a consciousness-download room, using its
-  prepared Core/body and loaner Parts. They may backtrack to reclaim their original Parts.
-- Any teammate may collect and temporarily use dropped equipment, but items previously taken from a
-  player's company storage retain that player's immutable owner ID. Successful extraction returns
-  them only when the recorded owner is personally carrying or equipping them; items held by a
-  teammate or left on the ground stay behind and are lost. Previously unbound
-  stage loot becomes the property of the eligible player carrying or equipping it when extraction
-  commits; the first player to pick it up receives no permanent claim.
-- Download rooms contain a randomized 1-to-current-player-count number of prepared bodies, strongly
-  weighted toward one.
-- Recovery requires taking a reusable USB/data-transfer device from the download room to the fallen
-  body, extracting its active consciousness, and inserting it into an available prepared body.
-- The USB device is reusable and transfers the active consciousness itself; it is not consumed, and
-  there is no gameplay countdown after extraction. Each room has one USB that carries one
-  consciousness at a time and can be reused for sequential recovery trips.
-- If its carrier is downed or disconnected, the USB and consciousness payload drop safely at that
-  body's location for another player to loot. The USB exists only for the current stage.
-- Every prepared-body Part independently selects a company-associated model/variant: 94.9% weak,
-  5% normal, and 0.1% exceptionally strong. Mechanically different tiers have distinct model IDs,
-  and every copy of a selected model has identical gameplay data. Any player may transfer into the
-  Core/body or loot it instead of reserving it for revival.
-- Without a reachable download room, the dead teammate spectates for the remainder of the stage/run
-  and returns to play only after the party completes its base/manufacturing preparation for a later
-  stage.
-- A full-party defeat removes all deployed equipment and recovered run loot, then returns the party
-  to its company/base through the synchronized consciousness cloud. Every player must manufacture a
-  new complete replacement loadout or equip one from surviving company storage before the party can
-  enter another stage; there is no automatic restart or free replacement gear. Each lost robot's
-  saved configuration remains preselected with its recalculated manufacturing total. A consciousness
-  lost while carried by the USB remains the one exception and must be replaced by a new character.
-- Manufacturing blueprints require five recovered samples of the exact same Part variant/model ID
-  and consume all five when the blueprint unlocks. Weak, normal, and exceptional variants have
-  separate sample progress and blueprints; unlocking one never unlocks its related variants.
-  Persistent possessions, research, blueprints, ownership, and base progression synchronize to the
-  cloud.
-- Run loot becomes persistent only when the party explicitly extracts after clearing the final
-  objective. Players may backtrack for persistent ground loot before leaving, but there is no
-  early-extraction room or exit.
-- Cores, Parts, and equipment taken into a stage are also at risk: failure loses those deployed item
-  instances, while victory returns surviving deployed gear and lets the company make recovered loot
-  persistent. Items left in company/base storage are never part of that risk.
-- Entering a stage is a one-way commitment: players may backtrack inside its cleared room graph but
-  cannot return to base, retreat, or extract until the final objective is cleared. They may then
-  continue backtracking and must explicitly extract. Traps, hazards, and surviving threats remain
-  dangerous; death before extraction still fails the attempt, but cleared encounters do not respawn.
-- Every enemy that actually spawns is uploaded to the persistent cloud encounter log, even on a
-  failed attempt. The log contains only what players could observe, not automatic statistics,
-  weaknesses, unseen behaviors, or drop rules; players discover those patterns and may document
-  them in their own community wiki.
-- If a run ends while the USB carries an active consciousness, that consciousness is lost; cloud
-  memories/state do not recreate the person for a later stage. The human player then starts as a
-  new character and manufactures its equipment from persistent unlocks/blueprints.
-- A living transfer into a prepared recovery body leaves the old body, functional Core, and Parts
-  behind as loot. The consciousness moves to the new Core and is not duplicated. Another eligible
-  character may immediately transfer into the now-unoccupied functional Core/body instead.
-- An extracted Part remains usable unless its owner explicitly submits it to research. Each Part
-  used as one of the five identical blueprint samples is consumed, so keeping/equipping it and
-  researching it are mutually exclusive choices.
-- Story-critical NPCs move and fight through coded AI and take HP damage through implemented combat
-  rules. They cannot die permanently through randomness or ordinary gameplay unless the creator
-  explicitly authors that death; missions may instead protect, incapacitate, or fail around them.
-- Later technology continuously synchronizes memories/state to the cloud, while the reusable USB
-  device transfers the active consciousness into another Core/new robot without memory loss.
-- One playable crew member is the unique discarded experiment; the other playable crew members are
-  ordinary Scrap Planet inhabitants.
-- A tragic death on the first or second mission motivates a breakthrough in repairing a body and
-  recovering, converting, or creating a new functioning Core; the exact event remains to clarify.
-- Memories/state can eventually synchronize to the cloud, while active consciousness can be moved
-  from a fallen body into another Core/body for mission recovery.
-- Core/Part Resonance is primarily based on manufacturer compatibility. Cross-manufacturer
-  Resonance requires a reason such as collaboration, shared technology, or infection.
-- The crew eventually conquers a company and uses its manufacturing capability as its own.
-- The original *Scrapborn* storyline is a primary differentiator and is preserved in
-  `STORY_BIBLE.md`; unresolved narrative decisions are tracked there.
-- Remaining scope decisions stay open under **Decisions needed before the scope is locked**.
+The decision register near the top of this file is the authoritative gameplay decision summary.
+Narrative canon and unresolved story questions live in `STORY_BIBLE.md`.
