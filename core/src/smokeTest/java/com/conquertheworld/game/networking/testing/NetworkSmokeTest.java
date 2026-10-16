@@ -15,6 +15,7 @@ import com.conquertheworld.game.gameplay.character.CharacterType;
 import com.conquertheworld.game.gameplay.entity.Entity;
 import com.conquertheworld.game.gameplay.entity.Hitbox;
 import com.conquertheworld.game.gameplay.entity.HitboxCollision;
+import com.conquertheworld.game.gameplay.enemy.BasicEnemyBrain;
 import com.conquertheworld.game.gameplay.combat.weapon.WeaponHand;
 import com.conquertheworld.game.gameplay.combat.weapon.sword.SwordAttack;
 import com.conquertheworld.game.gameplay.combat.weapon.sword.SwordAttackFactory;
@@ -35,6 +36,7 @@ public final class NetworkSmokeTest {
         assertCollisionVolumes();
         assertRotatedSwordHitboxes();
         assertStationarySwordAttack();
+        assertBasicEnemyBehavior();
 
         UdpGameServer server = new UdpGameServer("127.0.0.1", 0);
         LanDiscoveryResponder discovery = null;
@@ -202,7 +204,9 @@ public final class NetworkSmokeTest {
                     + ", LAN discovery found the room, and both clients received "
                     + "two character classes, two synchronized sword classes, authoritative "
                     + "movement, 15-degree aim steps, rotated multi-rectangle hitboxes, "
-                    + "stationary attacks, mirrored weapon-hand layers, wall collision, "
+                    + "stationary attacks, three predefined fighting rooms, deterministic "
+                    + "basic-enemy behavior, mirrored "
+                    + "weapon-hand layers, wall collision, "
                     + "a deterministic larger arena, shared JSON registries, a following "
                     + "camera, and snapshots"
             );
@@ -225,8 +229,9 @@ public final class NetworkSmokeTest {
         if (data.getCharacters().size() != 2
             || data.getSkins().size() != 4
             || data.getWeapons().size() != 2
-            || data.getAttacks().size() != 2) {
-            throw new AssertionError("The four JSON registries did not load every definition");
+            || data.getAttacks().size() != 2
+            || data.getFightingRooms().size() != 3) {
+            throw new AssertionError("The JSON registries did not load every definition");
         }
         if (!"knight_default".equals(CharacterType.KNIGHT.getDefaultSkinId())
             || CharacterType.ROGUE.getSpeed() <= CharacterType.KNIGHT.getSpeed()) {
@@ -246,16 +251,46 @@ public final class NetworkSmokeTest {
             || WorldLayout.getWorldHeight() <= GameConstants.CAMERA_VIEW_HEIGHT) {
             throw new AssertionError("The enlarged map does not extend beyond the camera view");
         }
-        if (WorldLayout.getInteriorWallCount() < 20) {
-            throw new AssertionError("The enlarged map did not generate enough interior walls");
-        }
         if (!Arrays.deepEquals(WorldLayout.copyMap(), WorldLayout.copyMap())) {
-            throw new AssertionError("The seeded map was not deterministic");
+            throw new AssertionError("The authored default map was not deterministic");
         }
         int firstVariant = WorldLayout.tileVariant(3, 8, 9, 0x464C4F4F);
         int repeatedVariant = WorldLayout.tileVariant(3, 8, 9, 0x464C4F4F);
         if (firstVariant != repeatedVariant || firstVariant < 0 || firstVariant >= 9) {
             throw new AssertionError("Tile texture variants were not deterministic");
+        }
+    }
+
+    private static void assertBasicEnemyBehavior() {
+        BasicEnemyBrain brain = new BasicEnemyBrain();
+        brain.update(0f, 0f, 100f, 0f, 0.1f);
+        if (Math.abs(brain.getMoveX() - 1f) > 0.0001f
+            || Math.abs(brain.getMoveY()) > 0.0001f
+            || brain.consumeAttackRequested()) {
+            throw new AssertionError("Basic enemy did not deterministically pursue a distant target");
+        }
+
+        brain.update(0f, 0f, 20f, 0f, 0f);
+        if (Math.abs(brain.getMoveX()) > 0.0001f
+            || Math.abs(brain.getMoveY()) > 0.0001f
+            || !brain.consumeAttackRequested()
+            || brain.consumeAttackRequested()) {
+            throw new AssertionError("Basic enemy did not stop and request exactly one melee attack");
+        }
+
+        brain.update(0f, 0f, 20f, 0f, 0.5f);
+        if (brain.consumeAttackRequested()) {
+            throw new AssertionError("Basic enemy ignored its attack cooldown");
+        }
+        brain.update(0f, 0f, 20f, 0f, 0.5f);
+        if (!brain.consumeAttackRequested()) {
+            throw new AssertionError("Basic enemy did not attack again at the fixed interval");
+        }
+
+        brain.update(0f, 0f, -100f, 0f, 0.1f);
+        if (Math.abs(brain.getMoveX() + 1f) > 0.0001f
+            || Math.abs(brain.getAimAngleDegrees() - 180f) > 0.0001f) {
+            throw new AssertionError("Basic enemy pursuit changed with direction");
         }
     }
 

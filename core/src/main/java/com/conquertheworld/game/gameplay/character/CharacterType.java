@@ -22,6 +22,7 @@ public enum CharacterType {
     public String getId() { return id; }
     public int getNetworkId() { return definition().getNetworkId(); }
     public String getDisplayName() { return definition().getDisplayName(); }
+    public float getMaximumHealth() { return definition().getMaximumHealth(); }
     public float getSpeed() { return definition().getSpeed(); }
     public float getBodyHeight() { return definition().getBodyHeight(); }
     public List<Hitbox> getBodyHitboxes() { return definition().getBodyHitboxes(); }

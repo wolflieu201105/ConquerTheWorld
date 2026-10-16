@@ -3,21 +3,22 @@ package com.conquertheworld.game.gameplay.world;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.conquertheworld.game.config.GameConstants;
 import com.conquertheworld.game.content.asset.TileSet;
+import com.conquertheworld.game.content.definition.FightingRoomDefinition;
+import com.conquertheworld.game.content.definition.GameDataRegistry;
 import com.conquertheworld.game.networking.protocol.AttackSnapshot;
 import com.conquertheworld.game.networking.config.NetworkConfig;
 import com.conquertheworld.game.networking.protocol.PlayerSnapshot;
 import com.conquertheworld.game.networking.connection.UdpGameClient;
 import com.conquertheworld.game.networking.protocol.WorldSnapshot;
+import com.conquertheworld.game.gameplay.combat.CombatSystem;
 import com.conquertheworld.game.gameplay.combat.weapon.sword.SwordAttack;
-import com.conquertheworld.game.gameplay.combat.weapon.sword.SwordAttackFactory;
 import com.conquertheworld.game.gameplay.character.CharacterType;
 import com.conquertheworld.game.gameplay.entity.Entity;
-import com.conquertheworld.game.gameplay.entity.HitboxCollision;
 import com.conquertheworld.game.gameplay.character.Player;
 import com.conquertheworld.game.gameplay.character.PlayerFactory;
+import com.conquertheworld.game.gameplay.enemy.BasicEnemy;
 import com.conquertheworld.game.gameplay.entity.Prop;
 import com.conquertheworld.game.gameplay.entity.RenderableObject;
-import com.conquertheworld.game.gameplay.combat.weapon.sword.SwordType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,29 +35,41 @@ public class GameWorld {
     private TextureRegion[] stones;
     private TextureRegion[] stoneWalls;
 
-    private final List<Prop> props = new ArrayList<>();
     private final List<Entity> entities = new ArrayList<>();
     private final List<RenderableObject> renderables = new ArrayList<>();
 
     private final UdpGameClient networkClient;
+    private final FightingRoomRuntime fightingRoom;
+    private final CombatSystem combatSystem = new CombatSystem();
     private final Map<Integer, Player> networkPlayers = new HashMap<>();
-    private final Map<Integer, SwordAttack> attacks = new HashMap<>();
 
     private Player player;
     private int lastAppliedServerTick = -1;
-    private int nextLocalAttackId = -1;
     private float localAimWorldX;
     private float localAimWorldY;
     private boolean hasLocalAimTarget;
 
-    private final int[][] map = WorldLayout.copyMap();
-
     public GameWorld() {
-        this(null);
+        this((UdpGameClient) null, defaultFightingRoom());
+    }
+
+    public GameWorld(FightingRoomDefinition fightingRoom) {
+        this(null, fightingRoom);
     }
 
     public GameWorld(UdpGameClient networkClient) {
+        this(networkClient, defaultFightingRoom());
+    }
+
+    private GameWorld(
+        UdpGameClient networkClient,
+        FightingRoomDefinition fightingRoom
+    ) {
         this.networkClient = networkClient;
+        if (fightingRoom == null) {
+            throw new IllegalArgumentException("fightingRoom cannot be null");
+        }
+        this.fightingRoom = new FightingRoomRuntime(fightingRoom);
         stoneTiles = new TileSet(GameConstants.STONE_TILESET_PATH);
 
         stones = new TextureRegion[9];
@@ -67,11 +80,26 @@ public class GameWorld {
         buildWorldFromMap();
 
         if (networkClient == null) {
-            player = PlayerFactory.create(NetworkConfig.getCharacterType(), 64f, 64f);
+            FightingRoomDefinition.SpawnPoint playerSpawn = fightingRoom.getPlayerSpawn();
+            player = PlayerFactory.create(
+                NetworkConfig.getCharacterType(),
+                playerSpawn.x(),
+                playerSpawn.y()
+            );
             player.setEquippedSwordType(NetworkConfig.getSwordType());
             entities.add(player);
+
+            for (FightingRoomDefinition.SpawnPoint spawn : fightingRoom.getEnemySpawns()) {
+                BasicEnemy enemy = new BasicEnemy(spawn.x(), spawn.y());
+                this.fightingRoom.addEnemy(enemy);
+                entities.add(enemy);
+            }
         }
         rebuildRenderables();
+    }
+
+    private static FightingRoomDefinition defaultFightingRoom() {
+        return GameDataRegistry.get().getFightingRoom(WorldLayout.DEFAULT_ROOM_ID);
     }
 
     private void loadStoneTiles() {
@@ -93,20 +121,19 @@ public class GameWorld {
     }
 
     private void buildWorldFromMap() {
-        props.clear();
         entities.clear();
 
-        for (int row = 0; row < map.length; row++) {
-            for (int col = 0; col < map[row].length; col++) {
-                int id = map[row][col];
-
+        FightingRoomDefinition definition = fightingRoom.getDefinition();
+        for (int row = 0; row < definition.getRows(); row++) {
+            for (int col = 0; col < definition.getColumns(); col++) {
                 float x = col * GameConstants.FLOOR_DRAW_SIZE;
-                float y = (map.length - 1 - row) * GameConstants.FLOOR_DRAW_SIZE;
+                float y = (definition.getRows() - 1 - row)
+                    * GameConstants.FLOOR_DRAW_SIZE;
 
-                if (id == WorldLayout.RANDOM_FLOOR) {
-                    addFloor(x, y, row, col);
-                } else if (id == WorldLayout.RANDOM_WALL) {
+                if (definition.isWall(row, col)) {
                     addWall(x, y, row, col);
+                } else {
+                    addFloor(x, y, row, col);
                 }
             }
         }
@@ -115,7 +142,8 @@ public class GameWorld {
     }
 
     private void addFloor(float gameX, float gameY, int row, int column) {
-        int variant = WorldLayout.tileVariant(row, column, stones.length, 0x464C4F4F);
+        int variant = fightingRoom.getDefinition()
+            .tileVariant(row, column, stones.length, 0x464C4F4F);
         TextureRegion region = stones[variant];
 
         Prop floor = new Prop(
@@ -134,11 +162,12 @@ public class GameWorld {
             false
         );
 
-        props.add(floor);
+        fightingRoom.addProp(floor);
     }
 
     private void addWall(float gameX, float gameY, int row, int column) {
-        int variant = WorldLayout.tileVariant(row, column, stoneWalls.length, 0x57414C4C);
+        int variant = fightingRoom.getDefinition()
+            .tileVariant(row, column, stoneWalls.length, 0x57414C4C);
         TextureRegion region = stoneWalls[variant];
 
         Prop wall = new Prop(
@@ -157,13 +186,13 @@ public class GameWorld {
             true
         );
 
-        props.add(wall);
+        fightingRoom.addProp(wall);
     }
 
     private void rebuildRenderables() {
         renderables.clear();
 
-        renderables.addAll(props);
+        renderables.addAll(fightingRoom.getProps());
         renderables.addAll(entities);
 
         renderables.sort((a, b) -> {
@@ -190,23 +219,38 @@ public class GameWorld {
             if (entity instanceof SwordAttack) {
                 continue;
             }
-            entity.update(delta);
+            if (entity instanceof Player currentPlayer && !currentPlayer.isAlive()) {
+                currentPlayer.setMovementVector(0f, 0f);
+                continue;
+            }
+            if (entity instanceof BasicEnemy enemy) {
+                if (enemy.isAlive() && player != null && player.isAlive()) {
+                    enemy.updateBehavior(
+                        player.getGameX() + player.getDrawWidth() * 0.5f,
+                        player.getGameY() + player.getDrawHeight() * 0.5f,
+                        delta
+                    );
+                } else {
+                    enemy.stop(delta);
+                }
+            } else {
+                entity.update(delta);
+            }
             moveEntity(entity, delta);
         }
 
         if (player != null
+            && player.isAlive()
             && player.consumeAttackPressed()
             && player.hasEquippedWeapon()) {
-            addAttack(
-                nextLocalAttackId--,
-                0,
-                player.getGameX(),
-                player.getGameY(),
-                player.getAimAngleDegrees(),
-                player.getEquippedSwordType()
-            );
+            entities.add(combatSystem.startPlayerAttack(player));
         }
-        updateLocalAttacks(delta);
+        for (BasicEnemy enemy : fightingRoom.getEnemies()) {
+            if (enemy.consumeAttackRequested()) {
+                entities.add(combatSystem.startEnemyAttack(enemy));
+            }
+        }
+        updateOfflineCombat(delta);
 
         rebuildRenderables();
     }
@@ -249,7 +293,7 @@ public class GameWorld {
             );
         }
 
-        updateNetworkAttacks(delta);
+        combatSystem.updateNetwork(delta);
 
         rebuildRenderables();
     }
@@ -306,13 +350,13 @@ public class GameWorld {
         Set<Integer> presentAttackIds = new HashSet<>();
         for (AttackSnapshot state : snapshot.getAttacks()) {
             presentAttackIds.add(state.getAttackId());
-            SwordAttack attack = attacks.get(state.getAttackId());
+            SwordAttack attack = combatSystem.getAttack(state.getAttackId());
             if (attack == null || attack.getSwordType() != state.getSwordType()) {
                 if (attack != null) {
                     entities.remove(attack);
-                    attacks.remove(state.getAttackId());
+                    combatSystem.removeAttack(state.getAttackId());
                 }
-                attack = addAttack(
+                attack = combatSystem.addAttack(
                     state.getAttackId(),
                     state.getOwnerPlayerId(),
                     state.getX(),
@@ -320,56 +364,22 @@ public class GameWorld {
                     state.getAimAngleDegrees(),
                     state.getSwordType()
                 );
+                entities.add(attack);
             }
         }
 
-        Iterator<Map.Entry<Integer, SwordAttack>> iterator = attacks.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<Integer, SwordAttack> entry = iterator.next();
-            if (!presentAttackIds.contains(entry.getKey())) {
-                entities.remove(entry.getValue());
-                iterator.remove();
-            }
-        }
+        entities.removeAll(combatSystem.removeAttacksExcept(presentAttackIds));
     }
 
-    private SwordAttack addAttack(
-        int attackId,
-        int ownerPlayerId,
-        float x,
-        float y,
-        float aimAngleDegrees,
-        SwordType swordType
-    ) {
-        SwordAttack attack = SwordAttackFactory.create(
-            swordType,
-            attackId,
-            ownerPlayerId,
-            x,
-            y,
-            aimAngleDegrees
-        );
-        attacks.put(attackId, attack);
-        entities.add(attack);
-        return attack;
-    }
-
-    private void updateLocalAttacks(float delta) {
-        Iterator<Map.Entry<Integer, SwordAttack>> iterator = attacks.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<Integer, SwordAttack> entry = iterator.next();
-            SwordAttack attack = entry.getValue();
-            attack.update(delta);
-            if (attack.isExpired()) {
-                entities.remove(attack);
-                iterator.remove();
-            }
-        }
-    }
-
-    private void updateNetworkAttacks(float delta) {
-        for (SwordAttack attack : attacks.values()) {
-            attack.update(delta);
+    private void updateOfflineCombat(float delta) {
+        entities.removeAll(combatSystem.updateOffline(
+            delta,
+            player,
+            fightingRoom.getEnemies()
+        ));
+        for (BasicEnemy enemy : fightingRoom.removeDefeatedEnemies()) {
+            entities.remove(enemy);
+            enemy.dispose();
         }
     }
 
@@ -412,32 +422,23 @@ public class GameWorld {
         entity.setGameX(previousX + moveX);
         entity.setGameY(previousY + moveY);
 
-        Prop wall = findCollidingWall(entity);
+        Prop wall = fightingRoom.findCollidingWall(entity);
         if (wall != null && entity.wallCollide(wall)) {
             entity.setGameX(previousX);
             entity.setGameY(previousY);
         }
     }
 
-    private Prop findCollidingWall(Entity entity) {
-        if (!entity.isSolid()) {
-            return null;
-        }
-
-        for (Prop prop : props) {
-            if (prop.isSolid() && HitboxCollision.overlaps(entity, prop)) {
-                return prop;
-            }
-        }
-        return null;
-    }
-
     public List<Prop> getProps() {
-        return props;
+        return fightingRoom.getProps();
     }
 
     public List<Entity> getEntities() {
         return entities;
+    }
+
+    public List<BasicEnemy> getEnemies() {
+        return fightingRoom.getEnemies();
     }
 
     public List<RenderableObject> getRenderables() {
@@ -448,21 +449,32 @@ public class GameWorld {
         return player;
     }
 
+    public FightingRoomDefinition getFightingRoom() {
+        return fightingRoom.getDefinition();
+    }
+
+    public float getWorldWidth() {
+        return fightingRoom.getWorldWidth();
+    }
+
+    public float getWorldHeight() {
+        return fightingRoom.getWorldHeight();
+    }
+
+    public boolean isFightingRoomCleared() {
+        return networkClient == null && fightingRoom.isCleared();
+    }
+
     public Map<Integer, Player> getNetworkPlayers() {
         return Collections.unmodifiableMap(networkPlayers);
     }
 
     public Map<Integer, SwordAttack> getAttacks() {
-        return Collections.unmodifiableMap(attacks);
+        return combatSystem.getAttacks();
     }
 
     public SwordAttack getActiveAttackForPlayer(int playerId) {
-        for (SwordAttack attack : attacks.values()) {
-            if (attack.getOwnerPlayerId() == playerId) {
-                return attack;
-            }
-        }
-        return null;
+        return combatSystem.getActiveAttackForPlayer(playerId);
     }
 
     public SwordAttack getActiveAttackForPlayer(Player targetPlayer) {
@@ -489,6 +501,8 @@ public class GameWorld {
         for (Entity entity : entities) {
             if (entity instanceof Player) {
                 ((Player) entity).dispose();
+            } else if (entity instanceof BasicEnemy) {
+                ((BasicEnemy) entity).dispose();
             }
         }
     }

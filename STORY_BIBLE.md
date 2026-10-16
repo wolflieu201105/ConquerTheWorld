@@ -691,6 +691,12 @@ Established gameplay canon:
 
 - Players equip six independent Part slots before entering a stage: head, torso, left arm, right
   arm, left leg, and right leg. The left/right arms and legs can use different Part models.
+- Part artwork is organized into named equipment sets. Each set has one sprite-sheet image containing
+  separately drawable Core, head, torso, left-arm, right-arm, left-leg, and right-leg layers for all
+  eight directions and required animation frames. A robot may visually combine Parts from multiple
+  sets; every equipped layer uses the same current direction, animation clip, and frame.
+- The unequipped frame is the special `empty_chassis` visual set. Empty slots draw their exposed
+  chassis/socket layer from that set while continuing to provide no Part-derived gameplay benefit.
 - Any Part slot may be empty. The underlying skeleton/frame still allows basic movement, even when
   every slot is empty, but an empty slot provides no Part-derived power, ability, stats, effects, or
   Resonance. The equipped Core remains powered and its main ability is usable even when every Part

@@ -750,6 +750,14 @@ Current open-decision index:
   exact stock-restoration rule until the shop UI and economy can be evaluated in play.
 - [x] **DEC-215 (P1):** When selling a material stack, let the player choose the exact quantity to
   sell rather than requiring sale of the entire stack.
+- [x] **DEC-216 (P0):** Package character Part artwork into named equipment-set sprite sheets. Each
+  set uses one PNG containing separately drawable Core, head, torso, left-arm, right-arm, left-leg,
+  and right-leg layers for all eight directions and required animation frames. A robot may mix Parts
+  from different sets; the renderer selects each equipped Part from its owning set sheet and layers
+  every selected region on the same synchronized direction, clip, and frame.
+- [x] **DEC-217 (P0):** Treat the unequipped frame as a special named `empty_chassis` equipment set.
+  When a Part slot is empty, draw that slot's exposed socket, framework, or wiring layer from this
+  set. The empty visual does not grant Part stats, abilities, effects, or Resonance.
 
 ## Current repository snapshot
 
@@ -757,7 +765,8 @@ Current open-decision index:
 
 - [x] **NOW-01:** Gradle/libGDX desktop project with `core` and `lwjgl3` modules.
 - [x] **NOW-02:** WASD movement, mouse aiming, camera follow, wall collision, and debug hitboxes.
-- [x] **NOW-03:** Deterministic 24-by-18 tile arena with shared client/server collision layout.
+- [x] **NOW-03:** Deterministic authored 24-by-18 Training Yard with shared client/server collision
+  layout.
 - [x] **NOW-04:** Knight and Rogue character definitions loaded from JSON.
 - [x] **NOW-05:** Quick and Heavy sword data, attack areas, timing, cooldown data, and rendering.
 - [x] **NOW-06:** Local play, LAN host/join, LAN discovery, direct-IP configuration, and a headless
@@ -771,20 +780,55 @@ Current open-decision index:
   content definitions, gameplay, presentation, networking, tests, and the desktop launcher. Assets
   are grouped by data and texture purpose, while architecture/networking/reference documents live
   under `docs` instead of production source.
+- [x] **NOW-11:** Replace the title/offline/gameplay page flag with libGDX `Game` and `Screen`
+  lifecycles. `ConquerTheWorldGame` now owns navigation; `TitleScreen`, `OfflinePlayScreen`, and
+  `GameplayScreen` own their respective input, rendering, world, and network resources. Replacing a
+  screen disposes the previous screen, while `BasicMenuUi` remains a reusable temporary menu view.
+- [x] **NOW-12:** Spawn one offline prototype enemy at a fixed open-map location. Its deterministic
+  behavior directly pursues the player, respects wall collision, stops at melee range, and emits a
+  Quick Sword attack at a fixed one-second interval. A generated temporary sprite flashes during its
+  attack, and the smoke task verifies pursuit direction and attack cooldown behavior.
+- [x] **NOW-13:** Add shared bounded health to players and enemies, validate player maximum health
+  and attack base damage from JSON, and resolve offline sword overlaps against opposing targets once
+  per swing. Defeated enemies are removed, zero-health players cannot move or attack, and the HUD
+  shows local-player and enemy health. Multiplayer health replication remains deferred.
+- [x] **NOW-14:** Add three selectable JSON-authored fighting rooms: Training Yard, Pillar Hall, and
+  Divided Foundry. Each definition contains fixed geometry plus one player spawn and several enemy
+  spawns; loading validates dimensions, solid boundaries, symbols, spawn counts, and complete floor
+  reachability. Offline play instantiates every configured enemy and reports `ROOM CLEARED` after
+  all of them are defeated. The networking prototype remains pinned to Training Yard.
+- [x] **NOW-15:** Add an `Esc` pause screen that freezes and retains the offline gameplay screen.
+  It can resume the exact current room, restart the selected room from its authored initial state,
+  or dispose the active game and return to the title screen. In the experimental multiplayer mode,
+  label it as a game menu, warn that the online session continues, and disable room restart.
+- [x] **NOW-16:** Add the standard `core/src/test` source set with focused JUnit tests for bounded
+  health, one-hit-per-target damage, lethal and separated hits, authored-room validation and
+  registry loading, and pause resume/restart ownership. Extract active attacks and damage into
+  `CombatSystem`/`CombatDamageResolver`, and room-local props, enemies, collision, and clear state
+  into `FightingRoomRuntime`, leaving `GameWorld` as their coordinator.
+- [x] **NOW-17:** Reduce `GameplayScreen` to frame and lifecycle coordination. Move world/network
+  startup and shutdown into `GameplaySession`, pointer/key mapping into `GameplayInputController`,
+  viewport and camera following into `GameplayCameraController`, world/weapon drawing into
+  `GameplayRenderer`, HUD drawing into `GameplayHudRenderer`, and collision visualization into
+  `GameplayDebugRenderer`.
 
 ### Important gaps observed in the current build
 
 - [ ] **GAP-01 (P0):** The player renderer supports only left/right directions.
 - [ ] **GAP-02 (P0):** Movement uses only two frames per direction.
-- [ ] **GAP-03 (P0):** There is no enemy damage, health, death, stage objective, reward, or completed
-  PvE stage loop.
-- [ ] **GAP-04 (P0):** The basic title/offline-play shell exists, but there is no boot screen,
-  stage/loadout preparation, working Continue/save flow, pause menu, settings screen, credits screen,
-  or results screen. The lobby browser remains post-demo work.
+- [ ] **GAP-03 (P0):** Offline attacks now reduce health, authored combat rooms clear when all
+  configured enemies are removed, and a zero-health player is immobilized, but there is no
+  defeat/results transition, connected room graph, reward, or completed PvE stage loop.
+- [ ] **GAP-04 (P0):** Explicit title, offline-play, and gameplay screens exist, but there is no boot
+  screen, base/stage/loadout preparation, working Continue/save flow, settings screen, credits
+  screen, results/storage-resolution screen, or error screen. The lobby browser remains post-demo
+  work.
 - [ ] **GAP-05 (P2):** Post-demo multiplayer is only prototype-grade LAN networking, not production
   cross-platform Internet networking. This does not block the offline demo.
 - [ ] **GAP-06 (P1):** There is no sound, music, combat effect art, or final weapon artwork.
-- [ ] **GAP-07 (P1):** Automated gameplay, data, protocol, and rendering tests are limited.
+- [ ] **GAP-07 (P1):** Focused health, damage, room-validation, and pause-ownership tests now exist,
+  but automated movement, cooldown, objective, stage, protocol, rendering, and platform coverage
+  remains limited.
 - [x] **GAP-08 (resolved):** Replace the generated starter README with the game overview, current
   prototype scope, module description, documentation links, and build commands.
 - [ ] **GAP-09 (P1):** Multiple skin entries currently reuse the same player texture with a tint;
@@ -859,6 +903,8 @@ tested by another person.
 - [ ] **BASE-01 (P0):** Document the required JDK version and verify it on a clean Windows machine.
 - [ ] **BASE-02 (P0):** Make `gradlew.bat build` the single clean build command.
 - [ ] **BASE-03 (P0):** Add standard `core/src/test` and `lwjgl3/src/test` test locations.
+  - Current progress: `core/src/test` exists and runs through Gradle/JUnit; launcher-specific tests
+    under `lwjgl3/src/test` remain unimplemented.
 - [ ] **BASE-04 (P0):** Add a CI job that compiles, tests, and packages on every pull request.
 - [ ] **BASE-05 (P1):** Add a formatting/static-analysis task and run it in CI.
 - [ ] **BASE-06 (P1):** Add a version string and build number shown in the UI and logs.
@@ -877,16 +923,26 @@ tested by another person.
 - [ ] **ARCH-01 (P0):** Introduce explicit game states/screens for boot, title, base/preparation,
   gameplay, pause, results/storage resolution, and error handling. Add a lobby state only with later
   multiplayer.
+  - Current progress: title, offline-play selection, and gameplay use explicit screens. Boot,
+    base/preparation, results/storage resolution, and error handling remain; pause is implemented.
 - [ ] **ARCH-02 (P0):** Make state transitions release/dispose resources reliably.
-- [ ] **ARCH-03 (P0):** Replace per-player texture loading with a shared asset manager.
+  - Current progress: replacing title, offline-play, or gameplay screens disposes the previous
+    screen and its owned UI, world, and networking resources. Pause ownership now has focused tests;
+    future screens must follow the same ownership rule.
+- [ ] **ARCH-03 (P0):** Replace per-player texture loading with a shared asset manager. Load each
+  named equipment-set sheet once and share its regions among every player, enemy, and mixed build
+  that references the set; entities must not individually dispose shared textures.
 - [ ] **ARCH-04 (P0):** Define loading progress and a missing/corrupt-asset error path.
 - [ ] **ARCH-05 (P1):** Split input reading from player simulation so local, remote, AI, replay,
   and controller input can use the same commands.
 - [ ] **ARCH-06 (P1):** Separate match rules and combat resolution from rendering in `GameWorld`.
+  - Current progress: active attacks and damage resolution live in `CombatSystem`, while room props,
+    enemies, collision, and clear state live in `FightingRoomRuntime`. Stage/match rules and the
+    remaining network-world coordination still need further extraction.
 - [ ] **ARCH-07 (P1):** Use a bounded/fixed simulation step and clamp unusually large frame deltas.
 - [ ] **ARCH-08 (P1):** Define stable IDs and schema migration rules for all JSON gameplay data.
-- [ ] **ARCH-09 (P1):** Validate all referenced textures, characters, weapons, attacks, and skins at
-  startup with actionable error messages.
+- [ ] **ARCH-09 (P1):** Validate all referenced textures, characters, weapons, attacks, equipment
+  sets, and Part-region mappings at startup with actionable error messages.
 
 ---
 
@@ -911,21 +967,25 @@ The required directions are:
 | `S` | South | 270 degrees |
 | `SE` | South-east | 315 degrees |
 
-Minimum budget **per independently drawn skin, skeleton, character sheet, or animated Part layer**:
+Minimum budget **per independently drawn Part/Core layer inside an equipment-set sheet**:
 
 - 8 directions x 4 movement frames = **32 movement frames**.
 - At least 1 idle frame x 8 directions = **8 idle frames**.
 - Recommended: 2 idle frames x 8 directions = **16 idle frames**.
 - Recommended minimum total with two idle frames = **48 frames per sheet**.
-- At the current 16-by-16 source-frame size, a simple six-column by eight-row sheet would be
-  96-by-128 pixels. A texture atlas with named regions is also acceptable.
+- Every named set contains seven independently drawable layers: Core, head, torso, left arm, right
+  arm, left leg, and right leg. The minimum movement-art budget for one complete set is therefore
+  **224 frames** (`7 layers x 8 directions x 4 movement frames`). Idle and later action clips add to
+  that total.
+- Keep every layer frame on the same canvas size, character origin, and attachment coordinates so
+  Parts from different named sets remain visually aligned when combined.
 - Mirroring east/west frames does **not** count as separately authored eight-direction art unless
   that shortcut is explicitly approved in DEC-12.
 
-The current four skin definitions all point to the same texture. If Knight and Rogue receive one
-unique base sheet each and color variants remain tint-only, the demo needs at least **64 newly
-drawn movement frames** total. If all four listed skins become unique artwork, it needs at least
-**128 movement frames** total.
+The current full-body `SkinDefinition` sheets are prototype data. Replace their runtime role with
+named equipment-set definitions and Part-to-region mappings rather than expanding the legacy
+whole-character format. One set PNG is loaded once, but its seven component layers remain
+independently selectable and drawable.
 
 ## Direction and sheet design
 
@@ -935,8 +995,10 @@ drawn movement frames** total. If all four listed skins become unique artwork, i
 - [ ] **ART-02 (P0):** Lock the exact clockwise angle boundaries used to map an angle to 8 sectors.
 - [ ] **ART-03 (P0):** Lock source frame width, frame height, character origin, foot position, and
   weapon-hand anchor positions.
-- [ ] **ART-04 (P0):** Choose sprite-sheet row/column order or named texture-atlas regions.
-- [ ] **ART-05 (P0):** Write a filename convention for character, skin, direction, clip, and frame.
+- [ ] **ART-04 (P0):** Lock the row/column or named-region layout used inside every equipment-set
+  PNG, including Part slot, direction, animation clip, and frame ordering.
+- [ ] **ART-05 (P0):** Write a filename and stable-ID convention for equipment sets and their Part
+  models/region mappings.
 - [ ] **ART-06 (P0):** Decide whether the first walk frame may also be the minimum idle frame.
 - [ ] **ART-07 (P1):** Define frame duration, loop order, and whether diagonal animation timing
   differs from cardinal animation timing.
@@ -956,9 +1018,11 @@ drawn movement frames** total. If all four listed skins become unique artwork, i
 - [ ] **ANIM-01 (P0):** Add a `Direction8` type containing all eight directions.
 - [ ] **ANIM-02 (P0):** Add a tested angle/vector-to-direction conversion.
 - [ ] **ANIM-03 (P0):** Replace hard-coded left/right `TextureRegion` fields with animation clips.
-- [ ] **ANIM-04 (P0):** Extend skin data to describe direction rows/regions and clip frame counts.
+- [ ] **ANIM-04 (P0):** Add equipment-set data describing its single shared PNG, Part/Core region
+  mappings, direction order, animation clips, frame counts, canvas size, and anchors.
 - [ ] **ANIM-05 (P0):** Validate that every required direction contains at least four walk frames.
-- [ ] **ANIM-06 (P0):** Load all eight idle and walk clips through the shared asset manager.
+- [ ] **ANIM-06 (P0):** Load each equipment-set PNG once through the shared asset manager and build
+  all eight-direction idle/walk regions for each independently drawable layer.
 - [ ] **ANIM-07 (P0):** Select the walk clip when movement magnitude is above the dead zone.
 - [ ] **ANIM-08 (P0):** Select the idle clip when movement is below the dead zone.
 - [ ] **ANIM-09 (P0):** Preserve the last valid direction when input/aim is inside its dead zone.
@@ -968,7 +1032,7 @@ drawn movement frames** total. If all four listed skins become unique artwork, i
 - [ ] **ANIM-13 (P2):** For later multiplayer, ensure remote players choose the same direction from
   synchronized state.
 - [ ] **ANIM-14 (P0):** Update weapon position and front/behind layering for all eight directions.
-- [ ] **ANIM-15 (P1):** Add optional per-direction hand/grip anchors to skin data.
+- [ ] **ANIM-15 (P1):** Add optional per-direction hand/grip anchors to equipment-set data.
 - [ ] **ANIM-16 (P1):** Add a developer animation viewer that cycles every clip and direction.
 - [ ] **ANIM-17 (P1):** Add automated tests for all angle boundaries, including 0/360 wraparound.
 - [ ] **ANIM-18 (P1):** Add data-validation tests for missing, duplicated, or undersized frames.
@@ -1456,6 +1520,9 @@ failure systems.
   revealed choices, unexplored rooms, locked paths, and the known final objective.
 - [ ] **STAGE-17 (P0):** Implement combat rooms that clear when their configured enemies or waves
   are defeated.
+  - Current progress: individual fighting-room definitions spawn their configured basic enemies and
+    report cleared after every enemy is defeated; waves, door unlocking, rewards, and graph progress
+    remain unimplemented.
 - [ ] **STAGE-18 (P0):** Implement Core rooms where players can inspect and change permitted Cores.
 - [ ] **STAGE-19 (P0):** Implement weapon rooms where players can inspect and change permitted
   weapons.
@@ -1479,6 +1546,9 @@ failure systems.
   lore objectives while removing temporary followers from the active party at stage end.
 - [ ] **STAGE-29 (P0):** Create an authored room-template format containing geometry, doors,
   compatible connections, encounters, clear rules, rewards, and environmental presentation.
+  - Current progress: the JSON format now covers fighting-room geometry, player spawn, enemy spawns,
+    display name, and validation. Doors, connections, encounter variants, rewards, and presentation
+    metadata remain unimplemented.
 - [ ] **STAGE-30 (P0):** Create fixed authored graphs for story/lore stages so narrative rooms,
   encounters, reveals, and objectives always occur in their intended order.
 - [ ] **STAGE-31 (P0):** Validate randomized farming graphs for reachable final objectives, legal
@@ -1564,14 +1634,16 @@ failure systems.
 
 ## Combat rules
 
-- [ ] **COMBAT-01 (P0):** Add health/max-health to authoritative player state.
+- [x] **COMBAT-01 (P0):** Add health/max-health to authoritative player state.
 - [ ] **COMBAT-02 (P0):** Add validated base-damage values to attack, weapon, and damaging-ability
   data.
-- [ ] **COMBAT-03 (P0):** Resolve attacks against eligible enemy targets in the authoritative
+  - Current progress: sword attacks load validated base damage through their weapon's attack
+    definition. Extend the same contract to future damaging abilities.
+- [x] **COMBAT-03 (P0):** Resolve attacks against eligible enemy targets in the authoritative
   simulation and keep player-versus-player damage disabled.
-- [ ] **COMBAT-04 (P0):** Prevent an individual swing from damaging the same target repeatedly
+- [x] **COMBAT-04 (P0):** Prevent an individual swing from damaging the same target repeatedly
   unless the attack explicitly allows it.
-- [ ] **COMBAT-05 (P0):** Prevent the attacker from damaging itself.
+- [x] **COMBAT-05 (P0):** Prevent the attacker from damaging itself.
 - [ ] **COMBAT-06 (P2):** For later cooperative multiplayer, resolve DEC-74 and implement the chosen
   friendly-fire rule without creating a competitive PvP mode.
 - [ ] **COMBAT-07 (P0):** Apply attack cooldown consistently in the offline simulation and preserve
@@ -1583,7 +1655,7 @@ failure systems.
   increases. Accumulate rapid-hit contributions, decay the result over time, and clamp the combined
   strength. Keep all screen-space UI, including the semi-transparent run inventory, anchored while
   the world view shakes. Add flash only after its accessibility controls exist.
-- [ ] **COMBAT-10 (P0):** Add death state and block dead-player movement/attacks.
+- [x] **COMBAT-10 (P0):** Add death state and block dead-player movement/attacks.
 - [ ] **COMBAT-11 (P0):** Add safe stage-spawn placement and the body-activation placement needed by
   authorized recovery flows; the solo demo has no automatic combat respawn.
 - [ ] **COMBAT-12 (P1):** Add brief spawn or body-activation protection only if playtests show it is
@@ -1689,7 +1761,7 @@ failure systems.
 
 ## Gameplay HUD
 
-- [ ] **HUD-01 (P0):** Display local health clearly.
+- [x] **HUD-01 (P0):** Display local health clearly.
 - [ ] **HUD-02 (P0):** Display PvE objective state and remaining time where applicable, without a
   competitive player score.
 - [ ] **HUD-03 (P0):** Display attack cooldown/readiness without obscuring the play area.
@@ -1730,6 +1802,9 @@ developer present. All visible placeholder content is removed or intentionally l
 - [ ] **UX-08 (P0):** Add pause/resume, settings, abandon-stage, and quit confirmation. Clearly warn
   that abandoning after launch counts as failure and loses all deployed equipment and run loot; it
   is never a safe return-to-base action.
+  - Current progress: `Esc` pauses offline simulation and provides Resume, Restart Room, and Title
+    Screen. Restart warns that current room progress is lost. Settings, complete deployed-equipment
+    and run-loot warnings, and confirmation dialogs remain unimplemented.
 - [ ] **UX-09 (P0):** Add understandable error dialogs for startup, platform, version, content-data,
   save, and packaging failures, always with a recovery action. Add connection/server cases with later
   multiplayer.
@@ -1790,9 +1865,9 @@ developer present. All visible placeholder content is removed or intentionally l
 
 ## World and gameplay content
 
-- [ ] **WORLD-01 (P0):** Replace the code-generated-only arena definition with a maintainable map
+- [x] **WORLD-01 (P0):** Replace the code-generated-only arena definition with a maintainable map
   data format or editor workflow.
-- [ ] **WORLD-02 (P0):** Add map validation for boundaries, reachable areas, and spawn points.
+- [x] **WORLD-02 (P0):** Add map validation for boundaries, reachable areas, and spawn points.
 - [ ] **WORLD-03 (P2):** For later multiplayer, ensure clients receive a map ID/hash or map data from
   the server.
 - [ ] **WORLD-04 (P0):** Produce the minimum map count chosen in PLAN-04.
@@ -1899,8 +1974,13 @@ issues, and has documented support/legal/release procedures.
 
 - [ ] **TEST-01 (P0):** Unit-test collision, movement normalization, attack cooldown, damage,
   objective state, direction mapping, and stage transitions.
+  - Current progress: bounded health and attack damage—including lethal, separated, and repeated
+    hits—have focused unit coverage. The other listed systems remain.
 - [ ] **TEST-02 (P0):** Test JSON parsing, schema versions, cross-references, ranges, and missing
   assets.
+  - Current progress: fighting-room parsing, defensive map copies, deterministic variants, registry
+    loading, boundary/spawn validation, and unreachable-floor rejection are covered. General schema,
+    cross-reference, range, and missing-asset cases remain.
 - [ ] **TEST-03 (P2):** For later multiplayer, round-trip-test every network packet and protocol
   version rejection.
 - [ ] **TEST-04 (P2):** Before the networked release, convert the current network smoke program into

@@ -1,8 +1,9 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "attacks": [
     {
       "id": "quick_swing",
+      "damage": 20.0,
       "duration": 0.22,
       "cooldown": 0.30,
       "collisionHeight": 32.0,
@@ -16,6 +17,7 @@
     },
     {
       "id": "heavy_swing",
+      "damage": 35.0,
       "duration": 0.36,
       "cooldown": 0.60,
       "collisionHeight": 32.0,

@@ -24,6 +24,7 @@ public enum SwordType {
     public String getId() { return id; }
     public int getNetworkId() { return weapon().getNetworkId(); }
     public String getDisplayName() { return weapon().getDisplayName(); }
+    public float getDamage() { return attack().getDamage(); }
     public float getDuration() { return attack().getDuration(); }
     public float getCooldown() { return attack().getCooldown(); }
     public float getCollisionHeight() { return attack().getCollisionHeight(); }

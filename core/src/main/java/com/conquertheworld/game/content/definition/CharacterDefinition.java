@@ -11,6 +11,7 @@ public final class CharacterDefinition {
     private final String id;
     private final int networkId;
     private final String displayName;
+    private final float maximumHealth;
     private final float speed;
     private final float bodyHeight;
     private final List<Hitbox> bodyHitboxes;
@@ -22,6 +23,7 @@ public final class CharacterDefinition {
         String id,
         int networkId,
         String displayName,
+        float maximumHealth,
         float speed,
         float bodyHeight,
         List<Hitbox> bodyHitboxes,
@@ -32,6 +34,7 @@ public final class CharacterDefinition {
         this.id = id;
         this.networkId = networkId;
         this.displayName = displayName;
+        this.maximumHealth = maximumHealth;
         this.speed = speed;
         this.bodyHeight = bodyHeight;
         this.bodyHitboxes = Collections.unmodifiableList(new ArrayList<>(bodyHitboxes));
@@ -43,6 +46,7 @@ public final class CharacterDefinition {
     public String getId() { return id; }
     public int getNetworkId() { return networkId; }
     public String getDisplayName() { return displayName; }
+    public float getMaximumHealth() { return maximumHealth; }
     public float getSpeed() { return speed; }
     public float getBodyHeight() { return bodyHeight; }
     public List<Hitbox> getBodyHitboxes() { return bodyHitboxes; }

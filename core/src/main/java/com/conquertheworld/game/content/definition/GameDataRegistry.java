@@ -21,7 +21,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-/** Loads and validates the four gameplay data sheets once for clients and headless servers. */
+/** Loads and validates shared gameplay data sheets once for clients and headless servers. */
 public final class GameDataRegistry {
     private static volatile GameDataRegistry instance;
 
@@ -29,12 +29,14 @@ public final class GameDataRegistry {
     private final Map<String, SkinDefinition> skins;
     private final Map<String, WeaponDefinition> weapons;
     private final Map<String, AttackDefinition> attacks;
+    private final Map<String, FightingRoomDefinition> fightingRooms;
 
     private GameDataRegistry() {
         characters = Collections.unmodifiableMap(loadCharacters());
         skins = Collections.unmodifiableMap(loadSkins());
         attacks = Collections.unmodifiableMap(loadAttacks());
         weapons = Collections.unmodifiableMap(loadWeapons());
+        fightingRooms = Collections.unmodifiableMap(loadFightingRooms());
         validateReferences();
     }
 
@@ -68,10 +70,15 @@ public final class GameDataRegistry {
         return required(attacks, id, "attack");
     }
 
+    public FightingRoomDefinition getFightingRoom(String id) {
+        return required(fightingRooms, id, "fighting room");
+    }
+
     public Map<String, CharacterDefinition> getCharacters() { return characters; }
     public Map<String, SkinDefinition> getSkins() { return skins; }
     public Map<String, WeaponDefinition> getWeapons() { return weapons; }
     public Map<String, AttackDefinition> getAttacks() { return attacks; }
+    public Map<String, FightingRoomDefinition> getFightingRooms() { return fightingRooms; }
 
     private Map<String, CharacterDefinition> loadCharacters() {
         Map<String, CharacterDefinition> result = new LinkedHashMap<>();
@@ -83,6 +90,7 @@ public final class GameDataRegistry {
                 id,
                 positiveNetworkId(value, "networkId"),
                 value.getString("displayName"),
+                positive(value, "maximumHealth"),
                 positive(value, "speed"),
                 positive(value, "bodyHeight"),
                 hitboxes(value.get("hitboxes")),
@@ -149,6 +157,7 @@ public final class GameDataRegistry {
             String id = id(value.getString("id"));
             putUnique(result, id, new AttackDefinition(
                 id,
+                positive(value, "damage"),
                 positive(value, "duration"),
                 positive(value, "cooldown"),
                 positive(value, "collisionHeight"),
@@ -156,6 +165,21 @@ public final class GameDataRegistry {
                 value.getFloat("swingEndDegrees"),
                 hitboxes(value.get("hitboxes"))
             ), "attack");
+        }
+        return result;
+    }
+
+    private Map<String, FightingRoomDefinition> loadFightingRooms() {
+        Map<String, FightingRoomDefinition> result = new LinkedHashMap<>();
+        for (JsonValue value = array("fighting_rooms.json", "fightingRooms").child;
+             value != null;
+             value = value.next) {
+            String id = id(value.getString("id"));
+            putUnique(result, id, new FightingRoomDefinition(
+                id,
+                value.getString("displayName"),
+                layoutRows(value.get("layout"))
+            ), "fighting room");
         }
         return result;
     }
@@ -264,6 +288,17 @@ public final class GameDataRegistry {
         List<String> result = new ArrayList<>();
         for (JsonValue value = values.child; value != null; value = value.next) {
             result.add(id(value.asString()));
+        }
+        return result;
+    }
+
+    private List<String> layoutRows(JsonValue values) {
+        if (values == null || !values.isArray() || values.size < 3) {
+            throw new IllegalStateException("A room layout must contain at least three rows");
+        }
+        List<String> result = new ArrayList<>();
+        for (JsonValue value = values.child; value != null; value = value.next) {
+            result.add(value.asString());
         }
         return result;
     }

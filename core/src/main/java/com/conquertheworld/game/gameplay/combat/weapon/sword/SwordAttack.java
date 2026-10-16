@@ -5,13 +5,17 @@ import com.conquertheworld.game.config.GameConstants;
 import com.conquertheworld.game.gameplay.entity.Entity;
 import com.conquertheworld.game.gameplay.entity.Hitbox;
 
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
 
 public abstract class SwordAttack extends Entity {
     private final int attackId;
     private final int ownerPlayerId;
     private final float aimAngleDegrees;
     private final SwordType swordType;
+    private final Set<Entity> hitTargets = Collections.newSetFromMap(new IdentityHashMap<>());
     private float remainingSeconds;
 
     protected SwordAttack(
@@ -87,6 +91,18 @@ public abstract class SwordAttack extends Entity {
 
     public SwordType getSwordType() {
         return swordType;
+    }
+
+    public float getDamage() {
+        return swordType.getDamage();
+    }
+
+    /** Returns true only the first time this attack registers the target. */
+    public boolean registerHit(Entity target) {
+        if (target == null) {
+            throw new IllegalArgumentException("Attack target cannot be null");
+        }
+        return hitTargets.add(target);
     }
 
     public boolean isExpired() {

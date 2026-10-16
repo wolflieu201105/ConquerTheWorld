@@ -8,14 +8,17 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.conquertheworld.game.config.GameConstants;
 import com.conquertheworld.game.content.definition.SkinDefinition;
+import com.conquertheworld.game.gameplay.combat.Damageable;
+import com.conquertheworld.game.gameplay.combat.Health;
 import com.conquertheworld.game.gameplay.entity.Entity;
 import com.conquertheworld.game.gameplay.entity.Prop;
 import com.conquertheworld.game.gameplay.combat.weapon.WeaponHand;
 import com.conquertheworld.game.gameplay.combat.weapon.sword.SwordType;
 
-public abstract class Player extends Entity {
+public abstract class Player extends Entity implements Damageable {
     private Texture skinTexture;
     private final CharacterType characterType;
+    private final Health health;
     private final String skinId;
     private final Color tint;
 
@@ -58,6 +61,7 @@ public abstract class Player extends Entity {
         );
 
         this.characterType = characterType;
+        health = new Health(characterType.getMaximumHealth());
         weaponHand = characterType.getDefaultWeaponHand();
         SkinDefinition skin = characterType.getDefaultSkin();
         skinId = skin.getId();
@@ -261,6 +265,11 @@ public abstract class Player extends Entity {
 
     public CharacterType getCharacterType() {
         return characterType;
+    }
+
+    @Override
+    public Health getHealth() {
+        return health;
     }
 
     public String getSkinId() {

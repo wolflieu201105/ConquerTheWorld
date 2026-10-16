@@ -8,6 +8,7 @@ import java.util.List;
 
 public final class AttackDefinition {
     private final String id;
+    private final float damage;
     private final float duration;
     private final float cooldown;
     private final float collisionHeight;
@@ -17,6 +18,7 @@ public final class AttackDefinition {
 
     AttackDefinition(
         String id,
+        float damage,
         float duration,
         float cooldown,
         float collisionHeight,
@@ -25,6 +27,7 @@ public final class AttackDefinition {
         List<Hitbox> hitboxes
     ) {
         this.id = id;
+        this.damage = damage;
         this.duration = duration;
         this.cooldown = cooldown;
         this.collisionHeight = collisionHeight;
@@ -34,6 +37,7 @@ public final class AttackDefinition {
     }
 
     public String getId() { return id; }
+    public float getDamage() { return damage; }
     public float getDuration() { return duration; }
     public float getCooldown() { return cooldown; }
     public float getCollisionHeight() { return collisionHeight; }

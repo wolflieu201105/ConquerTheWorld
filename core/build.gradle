@@ -19,6 +19,12 @@ tasks.register('networkSmokeTest', JavaExec) {
   systemProperty 'game.data.dir', file("${rootProject.projectDir}/assets/data").absolutePath
 }
 
+tasks.named('test') {
+  useJUnitPlatform()
+  workingDir rootProject.projectDir
+  systemProperty 'game.data.dir', file("${rootProject.projectDir}/assets/data").absolutePath
+}
+
 dependencies {
   api "com.badlogicgames.ashley:ashley:$ashleyVersion"
   api "com.badlogicgames.gdx-controllers:gdx-controllers-core:$gdxControllersVersion"
@@ -27,6 +33,9 @@ dependencies {
   api "com.badlogicgames.gdx:gdx:$gdxVersion"
   api "com.github.MrStahlfelge.gdx-websockets:core:$websocketVersion"
   api "de.golfgl.gdxcontrollerutils:gdx-controllerutils-mapping:$controllerMappingVersion"
+
+  testImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
+  testRuntimeOnly "org.junit.platform:junit-platform-launcher:$junitPlatformVersion"
 
   if(enableGraalNative == 'true') {
     implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"

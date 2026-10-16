@@ -13,23 +13,10 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 
 /**
- * Lightweight menu UI used before the full visual style and UI asset set exist.
- * It deliberately uses only generated shapes and libGDX's default font.
+ * Reusable temporary menu view used until the final UI art and widget system exist.
+ * Screen classes provide its text, choices, and navigation behavior.
  */
 public final class BasicMenuUi implements AutoCloseable {
-    public enum Page {
-        TITLE,
-        OFFLINE_PLAY
-    }
-
-    public enum Action {
-        NONE,
-        OPEN_OFFLINE_PLAY,
-        START_NEW_GAME,
-        BACK_TO_TITLE,
-        QUIT
-    }
-
     private static final Color BACKGROUND = new Color(0.025f, 0.035f, 0.055f, 1f);
     private static final Color BACKGROUND_BAND = new Color(0.045f, 0.065f, 0.09f, 1f);
     private static final Color PANEL = new Color(0.055f, 0.075f, 0.105f, 0.97f);
@@ -41,38 +28,37 @@ public final class BasicMenuUi implements AutoCloseable {
     private static final Color TEXT = new Color(0.88f, 0.91f, 0.92f, 1f);
     private static final Color MUTED = new Color(0.48f, 0.55f, 0.59f, 1f);
 
-    private static final ButtonSpec[] TITLE_BUTTONS = {
-        new ButtonSpec("PLAY", "OFFLINE", true, Action.OPEN_OFFLINE_PLAY),
-        new ButtonSpec("SETTINGS", "COMING LATER", false, Action.NONE),
-        new ButtonSpec("CREDITS", "COMING LATER", false, Action.NONE),
-        new ButtonSpec("QUIT", "", true, Action.QUIT)
-    };
-
-    private static final ButtonSpec[] OFFLINE_BUTTONS = {
-        new ButtonSpec("NEW GAME", "START THE CURRENT PROTOTYPE", true, Action.START_NEW_GAME),
-        new ButtonSpec("CONTINUE", "NO SAVE FOUND", false, Action.NONE),
-        new ButtonSpec("BACK", "", true, Action.BACK_TO_TITLE)
-    };
-
+    private final String title;
+    private final String subtitle;
+    private final String description;
+    private final String footer;
+    private final ButtonSpec[] buttons;
     private final ShapeRenderer shapes = new ShapeRenderer();
     private final BitmapFont titleFont = createFont();
     private final BitmapFont bodyFont = createFont();
     private final GlyphLayout glyphLayout = new GlyphLayout();
 
-    private Page page = Page.TITLE;
-    private Rectangle[] buttonBounds = new Rectangle[0];
+    private Rectangle[] buttonBounds;
     private int selectedIndex;
     private int width;
     private int height;
     private int lastMouseX = Integer.MIN_VALUE;
     private int lastMouseY = Integer.MIN_VALUE;
 
-    public void show(Page nextPage) {
-        page = nextPage;
-        selectedIndex = firstEnabledIndex(buttons());
-        lastMouseX = Integer.MIN_VALUE;
-        lastMouseY = Integer.MIN_VALUE;
-        rebuildLayout();
+    public BasicMenuUi(
+        String title,
+        String subtitle,
+        String description,
+        String footer,
+        ButtonSpec... buttons
+    ) {
+        this.title = title;
+        this.subtitle = subtitle;
+        this.description = description;
+        this.footer = footer;
+        this.buttons = buttons.clone();
+        buttonBounds = new Rectangle[buttons.length];
+        selectedIndex = firstEnabledIndex();
     }
 
     public void resize(int width, int height) {
@@ -81,42 +67,36 @@ public final class BasicMenuUi implements AutoCloseable {
         rebuildLayout();
     }
 
-    public Action update() {
-        ButtonSpec[] buttons = buttons();
-        updateMouseSelection(buttons);
+    /** Returns the selected button ID, or {@code null} when no action was selected this frame. */
+    public String update() {
+        updateMouseSelection();
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.UP)
             || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
-            selectedIndex = nextEnabledIndex(buttons, selectedIndex, -1);
+            selectedIndex = nextEnabledIndex(selectedIndex, -1);
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)
             || Gdx.input.isKeyJustPressed(Input.Keys.S)) {
-            selectedIndex = nextEnabledIndex(buttons, selectedIndex, 1);
-        }
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            return page == Page.OFFLINE_PLAY ? Action.BACK_TO_TITLE : Action.QUIT;
+            selectedIndex = nextEnabledIndex(selectedIndex, 1);
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
             || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-            return selectedAction(buttons);
+            return selectedButtonId();
         }
 
         if (Gdx.input.justTouched()) {
             int clicked = buttonAt(Gdx.input.getX(), height - Gdx.input.getY());
             if (clicked >= 0 && buttons[clicked].enabled()) {
                 selectedIndex = clicked;
-                return buttons[clicked].action();
+                return buttons[clicked].id();
             }
         }
 
-        return Action.NONE;
+        return null;
     }
 
     public void render(SpriteBatch batch, OrthographicCamera camera) {
-        ButtonSpec[] buttons = buttons();
-
         shapes.setProjectionMatrix(camera.combined);
         shapes.begin(ShapeRenderer.ShapeType.Filled);
         shapes.setColor(BACKGROUND);
@@ -177,18 +157,14 @@ public final class BasicMenuUi implements AutoCloseable {
         float bodyScale = MathUtils.clamp(height / 600f, 0.9f, 1.35f);
         float smallScale = bodyScale * 0.78f;
 
-        if (page == Page.TITLE) {
-            drawCentered(batch, titleFont, "CONQUER THE WORLD", width * 0.5f, height - 62f,
-                titleScale, TITLE);
-            drawCentered(batch, bodyFont, "SCRAPBORN", width * 0.5f, height - 98f,
+        drawCentered(batch, titleFont, title, width * 0.5f, height - 62f, titleScale, TITLE);
+        if (!subtitle.isEmpty()) {
+            drawCentered(batch, bodyFont, subtitle, width * 0.5f, height - 98f,
                 bodyScale * 1.2f, ACCENT);
-            drawCentered(batch, bodyFont, "A machine rises from a forgotten world",
-                width * 0.5f, height - 124f, smallScale, MUTED);
-        } else {
-            drawCentered(batch, titleFont, "OFFLINE PLAY", width * 0.5f, height - 70f,
-                titleScale, TITLE);
-            drawCentered(batch, bodyFont, "Prepare alone. Bring back what survives.",
-                width * 0.5f, height - 106f, bodyScale, ACCENT);
+        }
+        if (!description.isEmpty()) {
+            drawCentered(batch, bodyFont, description, width * 0.5f, height - 124f,
+                smallScale, MUTED);
         }
 
         for (int index = 0; index < buttons.length; index++) {
@@ -205,14 +181,11 @@ public final class BasicMenuUi implements AutoCloseable {
             }
         }
 
-        String footer = page == Page.TITLE
-            ? "Mouse / Arrow Keys + Enter"
-            : "Esc: Back    Mouse / Arrow Keys + Enter";
         drawCentered(batch, bodyFont, footer, width * 0.5f, 28f, smallScale, MUTED);
         batch.end();
     }
 
-    private void updateMouseSelection(ButtonSpec[] buttons) {
+    private void updateMouseSelection() {
         int mouseX = Gdx.input.getX();
         int mouseY = height - Gdx.input.getY();
         if (mouseX == lastMouseX && mouseY == lastMouseY) {
@@ -235,16 +208,15 @@ public final class BasicMenuUi implements AutoCloseable {
         return -1;
     }
 
-    private Action selectedAction(ButtonSpec[] buttons) {
+    private String selectedButtonId() {
         if (selectedIndex < 0 || selectedIndex >= buttons.length) {
-            return Action.NONE;
+            return null;
         }
         ButtonSpec selected = buttons[selectedIndex];
-        return selected.enabled() ? selected.action() : Action.NONE;
+        return selected.enabled() ? selected.id() : null;
     }
 
     private void rebuildLayout() {
-        ButtonSpec[] buttons = buttons();
         buttonBounds = new Rectangle[buttons.length];
         if (width <= 0 || height <= 0) {
             return;
@@ -265,11 +237,7 @@ public final class BasicMenuUi implements AutoCloseable {
         }
     }
 
-    private ButtonSpec[] buttons() {
-        return page == Page.TITLE ? TITLE_BUTTONS : OFFLINE_BUTTONS;
-    }
-
-    private static int firstEnabledIndex(ButtonSpec[] buttons) {
+    private int firstEnabledIndex() {
         for (int index = 0; index < buttons.length; index++) {
             if (buttons[index].enabled()) {
                 return index;
@@ -278,7 +246,7 @@ public final class BasicMenuUi implements AutoCloseable {
         return -1;
     }
 
-    private static int nextEnabledIndex(ButtonSpec[] buttons, int current, int direction) {
+    private int nextEnabledIndex(int current, int direction) {
         if (buttons.length == 0) {
             return -1;
         }
@@ -355,6 +323,6 @@ public final class BasicMenuUi implements AutoCloseable {
         bodyFont.dispose();
     }
 
-    private record ButtonSpec(String label, String hint, boolean enabled, Action action) {
+    public record ButtonSpec(String id, String label, String hint, boolean enabled) {
     }
 }

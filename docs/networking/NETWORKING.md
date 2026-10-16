@@ -45,27 +45,28 @@ stationary attack rectangles, and solid wall footprints. The startup default can
 
 The source packages now match responsibility:
 
-- `network/connection`: host/client sockets and the standalone server entry point;
-- `network/protocol`: packet codec and immutable snapshot records;
-- `network/discovery`: LAN room discovery;
-- `network/config`: command-line, system-property, and environment configuration;
+- `networking/connection`: host/client sockets and the standalone server entry point;
+- `networking/protocol`: packet codec and immutable snapshot records;
+- `networking/discovery`: LAN room discovery;
+- `networking/config`: command-line, system-property, and environment configuration;
+- `gameplay/combat`: shared health and damage contracts;
 - `gameplay/entity`: base entity, prop, renderable, hitbox, and collision classes;
 - `gameplay/character`: player parent, character subclasses, type, and factory;
 - `presentation/rendering`: shared weapon rendering;
 - `gameplay/combat/weapon/sword`: sword type, attack parent/subclasses, and factory;
-- `world`: `GameWorld`, shared layout, and collision math;
-- `data`: JSON definitions, validation, and the gameplay registry.
+- `gameplay/world`: `GameWorld`, shared layout, and collision math;
+- `content/definition`: JSON definitions, validation, and the gameplay registry.
 
 ## JSON gameplay sheets
 
 Four files under `assets/data` are loaded and validated by `GameDataRegistry`:
 
-- `characters.json`: stable/network IDs, names, speed, body height, default weapon hand, skins,
-  and body rectangles;
+- `characters.json`: stable/network IDs, names, maximum health, speed, body height, default weapon
+  hand, skins, and body rectangles;
 - `skins.json`: stable skin IDs, compatible character, texture/frame layout, and tint;
 - `weapons.json`: stable/network IDs, category, sprite, draw size, grip, rotation step, and attack
   reference;
-- `attacks.json`: timing, cooldown, collision height, swing range, and hitbox rectangles.
+- `attacks.json`: base damage, timing, cooldown, collision height, swing range, and hitbox rectangles.
 
 The client and headless server read the same numbers. Set `game.data.dir` or `GAME_DATA_DIR` only
 when the JSON is stored somewhere other than the normal `assets/data` directory. IDs must remain
@@ -262,14 +263,17 @@ SwordAttack swordAttack = SwordAttackFactory.create(
     player.getAimAngleDegrees()
 );
 
-if (HitboxCollision.overlaps(swordAttack, enemy)) {
-    // The server can resolve health/damage here.
+if (HitboxCollision.overlaps(swordAttack, enemy)
+    && swordAttack.registerHit(enemy)) {
+    enemy.takeDamage(swordAttack.getDamage());
 }
 ```
 
 The attack is non-solid and does not participate in player wall collision. The chosen `SwordType`
-supplies its rectangles, duration, and cooldown. Once constructed, the attack's coordinates and
-hitbox list remain fixed for the full duration even if its owner walks away.
+supplies its base damage, rectangles, duration, and cooldown. An attack records targets by identity
+so its overlapping hitboxes can damage each eligible target only once per swing. Once constructed,
+the attack's coordinates and hitbox list remain fixed for the full duration even if its owner walks
+away.
 
 At creation, the sword rectangles rotate around the player's center to the snapped aim direction
 and retain that individual rotation. `HitboxCollision` uses an oriented-rectangle Separating Axis
@@ -280,23 +284,25 @@ attack-button up-to-down transition, enforces the selected sword's cooldown, cre
 ID, and sends the type, direction, and fixed spawn coordinates in world snapshots. The server no
 longer copies the owner's changing coordinates into active attacks. Each client likewise creates
 the attack at the first received coordinates and does not attach it to the player. The current
-prototype synchronizes attacks but does not yet contain health, damage, or attack-effect art.
+prototype synchronizes attacks but does not yet replicate or authoritatively resolve health and
+damage over the network. Health/damage resolution currently belongs to the offline simulation;
+attack-effect art also remains unfinished.
 
-## Deterministic larger arena
+## Authored larger arena
 
-`WorldLayout` owns the 24x18 map shared by the rendered world and the headless server. It always
-builds the outer wall, protects an open spawn region in the lower-left, leaves regular corridors,
-and uses a fixed `MAP_SEED` to place random interior walls in the remaining cells. This gives the
-arena variation without allowing the server and clients to disagree about collision geometry.
+`fighting_rooms.json` contains the validated 24x18 room layouts, player spawn, and enemy spawns.
+Offline play can select any authored room. The networking prototype remains pinned to
+`training_yard`; `WorldLayout` exposes that room to both the rendered world and headless server so
+their collision geometry remains identical.
 
-Floor and wall artwork is deterministic too. `GameWorld` calls `WorldLayout.tileVariant(...)`
-with the tile's row, column, shared seed, and a floor/wall salt. It no longer creates a new
-unseeded `Random` per client. Therefore the host and every joining client select the same texture
-variant at every coordinate, not merely the same floor/wall order.
+Room loading rejects uneven dimensions, open boundaries, duplicate or missing player spawns,
+missing enemy spawns, unsupported symbols, and floor regions that cannot be reached from the player
+spawn. Floor and wall artwork is deterministic too: each room derives a stable visual seed from its
+ID and layout, then selects the same texture variant for each coordinate on every machine.
 
-To create a different shared arena, change `MAP_SEED` in `WorldLayout`. All players must run the
-same build because the current protocol does not transmit the map. To alter its shape, edit
-`MAP_COLUMNS`, `MAP_ROWS`, `INTERIOR_WALL_CHANCE`, or the spawn/corridor rules in `createMap()`.
+To create another offline fighting room, add a definition to `assets/data/fighting_rooms.json`.
+Changing the networked room still requires every player to run the same build because the current
+protocol does not transmit a room ID or map data.
 
 The server performs the same collision test before changing authoritative player positions, so
 a client cannot walk through an outer or interior wall and later send that invalid position to

@@ -1,10 +1,11 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "characters": [
     {
       "id": "knight",
       "networkId": 1,
       "displayName": "Knight",
+      "maximumHealth": 120.0,
       "speed": 80.0,
       "bodyHeight": 32.0,
       "defaultWeaponHand": "right",
@@ -18,6 +19,7 @@
       "id": "rogue",
       "networkId": 2,
       "displayName": "Rogue",
+      "maximumHealth": 90.0,
       "speed": 110.0,
       "bodyHeight": 26.0,
       "defaultWeaponHand": "left",

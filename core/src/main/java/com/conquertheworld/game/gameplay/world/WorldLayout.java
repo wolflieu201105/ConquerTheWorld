@@ -1,100 +1,49 @@
 package com.conquertheworld.game.gameplay.world;
 
 import com.conquertheworld.game.config.GameConstants;
+import com.conquertheworld.game.content.definition.FightingRoomDefinition;
+import com.conquertheworld.game.content.definition.GameDataRegistry;
 import com.conquertheworld.game.gameplay.entity.Hitbox;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
+/** Compatibility access to the authored room used by the networking prototype. */
 public final class WorldLayout {
-    public static final int RANDOM_FLOOR = -1;
-    public static final int RANDOM_WALL = -2;
+    public static final int RANDOM_FLOOR = FightingRoomDefinition.FLOOR;
+    public static final int RANDOM_WALL = FightingRoomDefinition.WALL;
 
-    private static final int MAP_COLUMNS = 24;
-    private static final int MAP_ROWS = 18;
-    private static final long MAP_SEED = 0x434F4E5155455354L;
-    private static final float INTERIOR_WALL_CHANCE = 0.20f;
-    private static final int[][] MAP = createMap();
+    public static final String DEFAULT_ROOM_ID = "training_yard";
+
+    private static final FightingRoomDefinition DEFAULT_ROOM = GameDataRegistry.get()
+        .getFightingRoom(DEFAULT_ROOM_ID);
 
     private WorldLayout() {
     }
 
     public static int[][] copyMap() {
-        int[][] result = new int[MAP.length][];
-        for (int row = 0; row < MAP.length; row++) {
-            result[row] = MAP[row].clone();
-        }
-        return result;
+        return DEFAULT_ROOM.copyMap();
     }
 
     public static float getWorldWidth() {
-        return MAP[0].length * GameConstants.FLOOR_DRAW_SIZE;
+        return DEFAULT_ROOM.getWorldWidth();
     }
 
     public static float getWorldHeight() {
-        return MAP.length * GameConstants.FLOOR_DRAW_SIZE;
+        return DEFAULT_ROOM.getWorldHeight();
     }
 
     public static long getMapSeed() {
-        return MAP_SEED;
+        return DEFAULT_ROOM.getVisualSeed();
     }
 
     public static int getInteriorWallCount() {
-        int count = 0;
-        for (int row = 1; row < MAP.length - 1; row++) {
-            for (int column = 1; column < MAP[row].length - 1; column++) {
-                if (MAP[row][column] == RANDOM_WALL) {
-                    count++;
-                }
-            }
-        }
-        return count;
+        return DEFAULT_ROOM.getInteriorWallCount();
     }
 
     /** Returns a stable visual variant for one map coordinate on every machine. */
     public static int tileVariant(int row, int column, int variantCount, int salt) {
-        if (variantCount <= 0) {
-            throw new IllegalArgumentException("variantCount must be positive");
-        }
-
-        long hash = MAP_SEED;
-        hash ^= (long) row * 0x9E3779B97F4A7C15L;
-        hash ^= (long) column * 0xC2B2AE3D27D4EB4FL;
-        hash ^= (long) salt * 0x165667B19E3779F9L;
-        hash ^= hash >>> 30;
-        hash *= 0xBF58476D1CE4E5B9L;
-        hash ^= hash >>> 27;
-        hash *= 0x94D049BB133111EBL;
-        hash ^= hash >>> 31;
-        return Math.floorMod(hash, variantCount);
-    }
-
-    private static int[][] createMap() {
-        int[][] result = new int[MAP_ROWS][MAP_COLUMNS];
-        Random random = new Random(MAP_SEED);
-
-        for (int row = 0; row < MAP_ROWS; row++) {
-            for (int column = 0; column < MAP_COLUMNS; column++) {
-                int worldTileY = MAP_ROWS - 1 - row;
-                boolean border = row == 0 || row == MAP_ROWS - 1
-                    || column == 0 || column == MAP_COLUMNS - 1;
-                if (border) {
-                    result[row][column] = RANDOM_WALL;
-                    continue;
-                }
-
-                // Keep the multiplayer spawn and its immediate movement lanes open.
-                boolean safeSpawnArea = column <= 7 && worldTileY <= 6;
-                // Regular open lanes prevent the procedural walls from sealing the map.
-                boolean corridor = column % 5 == 0 || worldTileY % 5 == 0;
-                boolean interiorWall = !safeSpawnArea
-                    && !corridor
-                    && random.nextFloat() < INTERIOR_WALL_CHANCE;
-                result[row][column] = interiorWall ? RANDOM_WALL : RANDOM_FLOOR;
-            }
-        }
-        return result;
+        return DEFAULT_ROOM.tileVariant(row, column, variantCount, salt);
     }
 
     public static boolean collidesWithWall(
@@ -124,14 +73,15 @@ public final class WorldLayout {
         List<Hitbox> hitboxes,
         float collisionHeight
     ) {
-        for (int row = 0; row < MAP.length; row++) {
-            for (int column = 0; column < MAP[row].length; column++) {
-                if (MAP[row][column] != RANDOM_WALL) {
+        for (int row = 0; row < DEFAULT_ROOM.getRows(); row++) {
+            for (int column = 0; column < DEFAULT_ROOM.getColumns(); column++) {
+                if (!DEFAULT_ROOM.isWall(row, column)) {
                     continue;
                 }
 
                 float wallX = column * GameConstants.FLOOR_DRAW_SIZE;
-                float wallY = (MAP.length - 1 - row) * GameConstants.FLOOR_DRAW_SIZE;
+                float wallY = (DEFAULT_ROOM.getRows() - 1 - row)
+                    * GameConstants.FLOOR_DRAW_SIZE;
                 for (Hitbox hitbox : hitboxes) {
                     if (CollisionMath.overlaps3D(
                         x + hitbox.getXOffset(),

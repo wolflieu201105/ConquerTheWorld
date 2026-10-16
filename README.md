@@ -8,7 +8,12 @@ code currently in the repository is an experimental foundation for a later coope
 
 - Responsive title and offline-play menus
 - Local arena movement, aiming, camera follow, and collision
-- JSON-defined characters, skins, swords, and attacks
+- One temporary deterministic enemy that pursues and performs timed melee attacks
+- Authored player health and weapon damage with enemy defeat and an offline health HUD
+- Three selectable predefined fighting rooms with authored geometry and spawn points
+- JSON-defined characters, skins, swords, attacks, and fighting rooms
+- `Esc` pause menu with Resume, Restart Room, and Title Screen actions
+- Focused JUnit tests for health, combat damage, room validation, and pause ownership
 - Debug hitbox rendering
 - Experimental server-authoritative LAN host/join and discovery
 
